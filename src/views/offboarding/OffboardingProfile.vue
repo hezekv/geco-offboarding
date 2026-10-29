@@ -15,7 +15,7 @@
     <!-- Header Actions -->
     <div class="flex items-center justify-between">
       <router-link to="/offboarding-employees" class="flex items-center text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft class="mr-1 h-4 w-4" /> Back to list
+        <AppIcon name="i-chevron" class="mr-1 h-4 w-4 -rotate-90" /> Back to list
       </router-link>
       
       <div class="flex gap-2">
@@ -24,7 +24,7 @@
           @click="handleSend" 
           class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary/90"
         >
-          <Send class="mr-2 h-4 w-4" /> Send to Consultant
+          <AppIcon name="i-send" class="mr-2 h-4 w-4" /> Send to Consultant
         </button>
         <button 
           v-if="offboarding.status !== 'draft' && offboarding.status !== 'archived'"
@@ -38,7 +38,7 @@
           @click="handleDelete" 
           class="inline-flex items-center rounded-md border border-destructive bg-white px-4 py-2 text-sm font-medium text-destructive shadow-sm hover:bg-destructive/10"
         >
-          <Trash2 class="mr-2 h-4 w-4" /> Delete
+          <AppIcon name="i-trash" class="mr-2 h-4 w-4" /> Delete
         </button>
       </div>
     </div>
@@ -97,9 +97,10 @@
           class="flex w-full items-center justify-between bg-muted/30 px-6 py-4 text-left hover:bg-muted/50 transition-colors"
         >
           <div class="flex items-center gap-3">
-            <ChevronDown 
-              class="h-5 w-5 text-muted-foreground transition-transform" 
-              :class="{ 'rotate-180': expandedRequirements.has(req.id) }" 
+            <AppIcon 
+              name="i-chevron" 
+              class="h-5 w-5 text-muted-foreground transition-transform duration-200" 
+              :class="{ 'rotate-90': expandedRequirements.has(req.id) }" 
             />
             <span class="font-semibold text-foreground">{{ req.name }}</span>
             <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
@@ -145,7 +146,7 @@
                     class="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-xs"
                   >
                     <div class="flex items-center gap-2 truncate">
-                      <FileText class="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                      <AppIcon name="i-file" class="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                       <span class="truncate">{{ file.file_name }}</span>
                       <span class="text-muted-foreground">({{ formatFileSize(file.file_size) }})</span>
                     </div>
@@ -195,12 +196,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, formatFileSize } from '@/lib/utils'
-import { ArrowLeft, Send, Trash2, ChevronDown, Link, FileText } from 'lucide-vue-next'
-
-// --- Add this missing import ---
-import InfoField from '@/components/ui/InfoField.vue'
+import { Link } from 'lucide-vue-next' // Kept because 'link/url' isn't in the sprite
 import StatusBadge from '@/components/ui/StatusBadge.vue'
-
+import InfoField from '@/components/ui/InfoField.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -246,7 +244,6 @@ const outstandingTasksCount = computed(() => {
 // --- Data Fetching ---
 onMounted(async () => {
   await fetchData()
-  // Expand the first requirement by default
   if (requirements.value.length > 0) {
     expandedRequirements.value.add(requirements.value[0].id)
   }
@@ -256,7 +253,6 @@ async function fetchData() {
   loading.value = true
   const obId = route.params.id as string
 
-  // 1. Fetch offboarding + consultant + HR
   const { data: obData, error: obError } = await supabase
     .from('offboardings')
     .select(`
@@ -274,7 +270,6 @@ async function fetchData() {
   }
   offboarding.value = obData
 
-  // 2. Fetch nested requirements and sub-requirements
   const { data: reqsData, error: reqsError } = await supabase
     .from('offboarding_requirements')
     .select(`
@@ -334,12 +329,9 @@ async function toggleSubRequirementComplete(sub: any) {
     console.error('Error updating sub-requirement:', error)
     showFeedback('Failed to update status')
   } else {
-    // Optimistic update
     sub.status = newStatus
     sub.completed_at = updateData.completed_at
     showFeedback(newStatus === 'completed' ? 'Marked as completed' : 'Marked as pending')
-    
-    // Re-fetch to ensure parent offboarding status is correctly derived by the DB trigger
     await fetchData()
   }
 }
@@ -349,7 +341,7 @@ async function openFile(storagePath: string) {
   try {
     const { data, error } = await supabase.storage
       .from('config-files')
-      .createSignedUrl(storagePath, 60) // 60 seconds expiry
+      .createSignedUrl(storagePath, 60)
 
     if (error) throw error
     if (data?.signedUrl) {

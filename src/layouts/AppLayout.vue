@@ -3,7 +3,7 @@
     <AppSidebar />
     <div class="flex flex-1 flex-col overflow-hidden">
       <AppHeader />
-      <main class="flex-1 overflow-y-auto p-8">
+      <main class="flex-1 overflow-y-auto bg-[#EFF3F7] p-8">
         <router-view />
       </main>
     </div>

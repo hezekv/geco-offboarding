@@ -8,7 +8,7 @@
       </div>
       <router-link
         to="/offboarding-employees/new"
-        class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary/90"
+        class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-full text-sm px-4 py-2.5 focus:outline-none"
       >
         <Plus class="mr-2 h-4 w-4" /> New Offboarding
       </router-link>

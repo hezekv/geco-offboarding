@@ -8,9 +8,9 @@
       </div>
       <router-link
         to="/offboarding-employees/new"
-        class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow hover:bg-primary/90"
+        class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-full text-sm px-4 py-2.5 focus:outline-none"
       >
-        <Plus class="mr-2 h-4 w-4" />
+        <AppIcon name="i-plus" class="mr-2 h-4 w-4" />
         New Offboarding
       </router-link>
     </div>
@@ -18,7 +18,7 @@
     <!-- Search & Filters -->
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div class="relative w-full sm:max-w-sm">
-        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <AppIcon name="i-search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           v-model="search"
           type="text"
@@ -30,7 +30,7 @@
       <div class="flex gap-2">
         <select
           v-model="statusFilter"
-          class="rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          class="w-full rounded-md px-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
         >
           <option value="">All Statuses</option>
           <option value="draft">Draft</option>
@@ -134,7 +134,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
-import { Plus, Search } from 'lucide-vue-next'
 import StatusBadge from '@/components/ui/StatusBadge.vue'
 
 // --- State ---
@@ -151,7 +150,7 @@ onMounted(async () => {
 async function fetchRecords() {
   loading.value = true
   
-  // 1. Fetch base offboarding records with consultant and HR info (standard table joins work perfectly)
+  // 1. Fetch base offboarding records with consultant and HR info
   const { data: offboardings, error: obError } = await supabase
     .from('offboardings')
     .select(`
@@ -193,7 +192,7 @@ async function fetchRecords() {
     console.error('Error fetching sub-requirements:', subError)
   }
 
-  // 3. Aggregate progress in JavaScript (fast and reliable)
+  // 3. Aggregate progress in JavaScript
   const progressMap = new Map()
   if (subReqs) {
     for (const req of subReqs) {
@@ -203,7 +202,6 @@ async function fetchRecords() {
       }
       const counts = progressMap.get(obId)
       
-      // Only count non-disabled tasks
       if (req.status !== 'disabled') {
         counts.active += 1
         if (req.status === 'completed') {

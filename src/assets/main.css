@@ -1,38 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    /* GECO blue */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-  }
-}
+    /* Typography */
+    --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
 
-@layer base {
-  * {
-    @apply border-border;
+    /* Brand & Core Colors */
+    --c-brand: #0d5f8f;
+    --c-brand-dk: #0a4d73;
+    --c-brand-soft: #eaf2f6;
+    --c-accent: #35b6d9;
+
+    /* Text Colors */
+    --c-ink: #122033;
+    --c-ink-2: #243447;
+    --c-ink-3: #64758b;
+    --c-ink-4: #93a1b0;
+
+    /* Surfaces & Backgrounds */
+    --c-bg: #f8fafc;
+    --c-surface: #ffffff;
+    --c-surface-2: #f4f7fb;
+    --c-input: #eef2f7;
+
+    /* Borders */
+    --c-border: #e2e8f0;
+    --c-border-input: #d5dee8;
+    --c-line: #d7e0ea;
+
+    /* Sidebar */
+    --c-sidebar: #1b2534;
+    --c-sidebar-text: #c7d0dc;
+    --c-sidebar-muted: #8fa0b3;
+    --c-sidebar-hover: rgba(255, 255, 255, .06);
+    --c-sidebar-active: rgba(255, 255, 255, .10);
+
+    /* Status Colors */
+    --c-success: #198754;
+    --c-warning: #b7791f;
+    --c-danger: #b3373f;
+    --c-danger-soft: #fdf5f6;
+    --c-draft-bg: #dbe8f1;
+    --c-draft-ink: #23415a;
+
+    /* Radii */
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-card: 16px;
+    --radius-pill: 999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(16, 24, 40, .04);
+    --shadow-md: 0 4px 12px rgba(18, 32, 51, .06);
+    --shadow-lg: 0 24px 64px rgba(18, 32, 51, .20);
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
+    background-color: var(--c-bg);
+    color: var(--c-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* 
+  Complex interactive styles from the mockup that are verbose in Tailwind.
+  We use @apply to keep them scoped and clean.
+*/
+@layer components {
+  /* Table Row Hover Animation (Pill moves left, Button appears) */
+  .emp-table-row {
+    @apply transition-colors duration-150;
+  }
+  .emp-table-row:hover td {
+    background-color: var(--c-input);
+  }
+  
+  .status-pill {
+    @apply relative z-10 transition-transform duration-150 ease-out;
+  }
+  .emp-table-row:hover .status-pill {
+    transform: translateX(calc(-100% - 8px));
+  }
+
+  .open-profile-btn {
+    @apply absolute top-1/2 left-3 -translate-y-1/2 opacity-0 transition-all duration-150 ease-out;
+  }
+  .emp-table-row:hover .open-profile-btn {
+    @apply opacity-100 translate-x-0;
   }
 }

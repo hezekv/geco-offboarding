@@ -1,0 +1,30 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+
+    /* Silence the forward-looking baseUrl deprecation warning */
+    "ignoreDeprecations": "6.0",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path Aliases for '@/...' imports */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "env.d.ts"
+  ]
+}

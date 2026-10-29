@@ -126,7 +126,7 @@
                     type="button"
                     aria-label="Remove file"
                     class="absolute -right-[9px] -top-[9px] grid h-5 w-5 place-items-center rounded-full bg-[#cfe0ed] text-ink transition-colors hover:bg-[#bcd4e6]"
-                    @click="dismissFile(sub, fIdx)"
+                    @click="dismissFile(sub, Number(fIdx))"
                   >
                     <AppIcon name="i-x" class="h-2.5 w-2.5" />
                   </button>

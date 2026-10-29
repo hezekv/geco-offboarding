@@ -41,6 +41,7 @@ export interface Database {
           role?: ProfileRole;
           region?: string;
         };
+        Relationships: [];
       };
       consultants: {
         Row: {
@@ -60,6 +61,7 @@ export interface Database {
           "id"
         > & { id?: string };
         Update: Partial<Database["public"]["Tables"]["consultants"]["Insert"]>;
+        Relationships: [];
       };
       config_requirements: {
         Row: {
@@ -84,6 +86,9 @@ export interface Database {
             "id"
           >
         >;
+        Relationships: [
+          { foreignKeyName: "config_requirements_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ];
       };
       config_sub_requirements: {
         Row: {
@@ -102,6 +107,9 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["config_sub_requirements"]["Insert"]
         >;
+        Relationships: [
+          { foreignKeyName: "config_sub_requirements_requirement_id_fkey"; columns: ["requirement_id"]; isOneToOne: false; referencedRelation: "config_requirements"; referencedColumns: ["id"] },
+        ];
       };
       config_files: {
         Row: {
@@ -118,6 +126,10 @@ export interface Database {
           "id"
         > & { id?: string };
         Update: Partial<Database["public"]["Tables"]["config_files"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "config_files_sub_requirement_id_fkey"; columns: ["sub_requirement_id"]; isOneToOne: false; referencedRelation: "config_sub_requirements"; referencedColumns: ["id"] },
+          { foreignKeyName: "config_files_uploaded_by_fkey"; columns: ["uploaded_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ];
       };
       offboardings: {
         Row: {
@@ -132,18 +144,30 @@ export interface Database {
           completed_at: string | null;
           share_token: string;
           created_by: string | null;
+          created_at: string;
         };
         Insert: {
           consultant_id: string;
           assigned_hr_id?: string | null;
           last_working_day?: string | null;
+          status?: OffboardingStatus;
+          created_by?: string | null;
           id?: string;
         };
         Update: {
           assigned_hr_id?: string | null;
           last_working_day?: string | null;
           status?: OffboardingStatus;
+          sent_at?: string | null;
+          sent_by?: string | null;
+          completed_at?: string | null;
         };
+        Relationships: [
+          { foreignKeyName: "offboardings_consultant_id_fkey"; columns: ["consultant_id"]; isOneToOne: false; referencedRelation: "consultants"; referencedColumns: ["id"] },
+          { foreignKeyName: "offboardings_assigned_hr_id_fkey"; columns: ["assigned_hr_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "offboardings_sent_by_fkey"; columns: ["sent_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+          { foreignKeyName: "offboardings_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ];
       };
       offboarding_requirements: {
         Row: {
@@ -161,6 +185,10 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["offboarding_requirements"]["Insert"]
         >;
+        Relationships: [
+          { foreignKeyName: "offboarding_requirements_offboarding_id_fkey"; columns: ["offboarding_id"]; isOneToOne: false; referencedRelation: "offboardings"; referencedColumns: ["id"] },
+          { foreignKeyName: "offboarding_requirements_source_config_id_fkey"; columns: ["source_config_id"]; isOneToOne: false; referencedRelation: "config_requirements"; referencedColumns: ["id"] },
+        ];
       };
       offboarding_sub_requirements: {
         Row: {
@@ -174,13 +202,24 @@ export interface Database {
           completed_by: string | null;
           sort_order: number;
         };
-        Insert: Omit<
-          Database["public"]["Tables"]["offboarding_sub_requirements"]["Row"],
-          "id"
-        > & { id?: string };
+        Insert: {
+          offboarding_requirement_id: string;
+          title: string;
+          instructions?: string | null;
+          resource_url?: string | null;
+          status?: SubRequirementStatus;
+          completed_at?: string | null;
+          completed_by?: string | null;
+          sort_order?: number;
+          id?: string;
+        };
         Update: Partial<
           Database["public"]["Tables"]["offboarding_sub_requirements"]["Insert"]
         >;
+        Relationships: [
+          { foreignKeyName: "offboarding_sub_requirements_offboarding_requirement_id_fkey"; columns: ["offboarding_requirement_id"]; isOneToOne: false; referencedRelation: "offboarding_requirements"; referencedColumns: ["id"] },
+          { foreignKeyName: "offboarding_sub_requirements_completed_by_fkey"; columns: ["completed_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ];
       };
       offboarding_files: {
         Row: {
@@ -199,6 +238,10 @@ export interface Database {
         Update: Partial<
           Database["public"]["Tables"]["offboarding_files"]["Insert"]
         >;
+        Relationships: [
+          { foreignKeyName: "offboarding_files_offboarding_sub_requirement_id_fkey"; columns: ["offboarding_sub_requirement_id"]; isOneToOne: false; referencedRelation: "offboarding_sub_requirements"; referencedColumns: ["id"] },
+          { foreignKeyName: "offboarding_files_source_file_id_fkey"; columns: ["source_file_id"]; isOneToOne: false; referencedRelation: "config_files"; referencedColumns: ["id"] },
+        ];
       };
     };
     Views: {
@@ -209,6 +252,7 @@ export interface Database {
           active_tasks: number;
           completed_tasks: number;
         };
+        Relationships: [];
       };
       offboarding_requirement_progress: {
         Row: {
@@ -217,8 +261,16 @@ export interface Database {
           active_tasks: number;
           completed_tasks: number;
         };
+        Relationships: [];
       };
     };
+    Functions: { [_ in never]: never };
+    Enums: {
+      profile_role: ProfileRole;
+      offboarding_status: OffboardingStatus;
+      sub_requirement_status: SubRequirementStatus;
+    };
+    CompositeTypes: { [_ in never]: never };
   };
 }
 

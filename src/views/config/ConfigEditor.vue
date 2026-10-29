@@ -80,7 +80,7 @@
                 <span>{{ file.file_name }}</span>
                 <span class="text-muted-foreground">({{ formatFileSize(file.file_size) }})</span>
               </div>
-              <button @click="removeFile(index, fIndex)" class="text-destructive hover:underline">Remove</button>
+              <button @click="removeFile(index, Number(fIndex))" class="text-destructive hover:underline">Remove</button>
             </div>
           </div>
 

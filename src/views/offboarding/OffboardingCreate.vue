@@ -68,6 +68,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import type { SubRequirementStatus } from '@/lib/supabase-types'
 import { useAuthStore } from '@/stores/auth'
 import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 
@@ -182,7 +183,7 @@ async function handleCreate() {
           title: s.title,
           instructions: s.instructions,
           resource_url: s.resource_url,
-          status: s.is_disabled ? 'disabled' : 'pending',
+          status: (s.is_disabled ? 'disabled' : 'pending') as SubRequirementStatus,
           sort_order: s.sort_order
         }))
 

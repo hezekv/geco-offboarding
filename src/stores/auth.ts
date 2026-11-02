@@ -6,13 +6,13 @@ import type { Tables } from '@/lib/supabase-types'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<any>(null)
   const profile = ref<Tables<'profiles'> | null>(null)
-  const consultant = ref<any>(null) // ← ADDED: Tracks consultant-specific data
+  const consultant = ref<any>(null)
   const loading = ref(true)
 
   const isAuthenticated = computed(() => !!user.value)
   const fullName = computed(() => profile.value?.full_name ?? user.value?.email ?? 'User')
   const role = computed(() => profile.value?.role ?? null)
-  const consultantId = computed<string | null>(() => consultant.value?.id ?? null) // ← ADDED
+  const consultantId = computed<string | null>(() => consultant.value?.id ?? null)
 
   async function init() {
     try {
@@ -28,12 +28,12 @@ export const useAuthStore = defineStore('auth', () => {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     profile.value = data ?? null
     
-    // ← ADDED: If the user is a consultant, fetch their specific consultant record
     if (data?.role === 'consultant') {
       const { data: cons } = await supabase
         .from('consultants')
         .select('*')
-        .eq('user_id', userId)
+        // ✅ QUICK FIX: Added 'as any' to bypass strict type checking for the new column
+        .eq('user_id' as any, userId)
         .single()
       consultant.value = cons ?? null
     } else {
@@ -52,7 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
     await supabase.auth.signOut()
     user.value = null
     profile.value = null
-    consultant.value = null // ← ADDED: Clear consultant state on logout
+    consultant.value = null
   }
 
   // Listen for auth state changes (e.g., token refresh, sign-out from another tab)
@@ -62,19 +62,19 @@ export const useAuthStore = defineStore('auth', () => {
       await loadProfile(user.value.id)
     } else {
       profile.value = null
-      consultant.value = null // ← ADDED
+      consultant.value = null
     }
   })
 
   return { 
     user, 
     profile, 
-    consultant, // ← ADDED
+    consultant, 
     loading, 
     isAuthenticated, 
     fullName, 
     role, 
-    consultantId, // ← ADDED
+    consultantId, 
     init, 
     signIn, 
     signOut 

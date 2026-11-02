@@ -29,19 +29,18 @@ export const useAuthStore = defineStore('auth', () => {
     profile.value = data ?? null
     
     if (data?.role === 'consultant') {
-      // ✅ DEFINITIVE FIX: Cast 'user_id' to 'any' to bypass strict Supabase type 
-      // checking when the generated types are out of sync with the database schema.
+      // @ts-expect-error TS2589: Type instantiation is excessively deep (Supabase generic inference limit)
       const { data: cons } = await supabase
         .from('consultants')
         .select('*')
-        .eq('user_id' as any, userId)
+        .eq('user_id', userId)
         .single()
       
       consultant.value = cons ?? null
     } else {
       consultant.value = null
     }
-    }
+  }
 
   async function signIn(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })

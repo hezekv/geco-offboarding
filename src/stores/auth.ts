@@ -3,6 +3,13 @@ import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import type { Tables } from '@/lib/supabase-types'
 
+// ✅ ROBUST FIX: Local type to short-circuit Supabase's deep type inference (TS2589)
+type ConsultantRow = {
+  id: string
+  user_id: string | null
+  [key: string]: any
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<any>(null)
   const profile = ref<Tables<'profiles'> | null>(null)
@@ -29,12 +36,14 @@ export const useAuthStore = defineStore('auth', () => {
     profile.value = data ?? null
     
     if (data?.role === 'consultant') {
+      // ✅ ROBUST FIX: .returns<ConsultantRow[]>() stops the deep type inference chain
       const { data: cons } = await supabase
         .from('consultants')
         .select('*')
-        // ✅ QUICK FIX: Added 'as any' to bypass strict type checking for the new column
-        .eq('user_id' as any, userId)
+        .eq('user_id', userId)
+        .returns<ConsultantRow[]>() 
         .single()
+      
       consultant.value = cons ?? null
     } else {
       consultant.value = null

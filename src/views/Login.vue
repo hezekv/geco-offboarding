@@ -1,85 +1,128 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-slate-50 p-6">
-    <div class="w-full max-w-md rounded-xl border bg-white p-8 shadow-sm">
-      <div class="mb-6 flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-white font-bold">G</div>
-        <div>
-          <div class="font-semibold">GECO Asia</div>
-          <div class="text-xs text-muted-foreground">HR Business Partner Portal</div>
+  <div class="flex min-h-screen items-center justify-center bg-[#EFF3F7] px-4 py-10">
+    <div class="w-full max-w-[420px]">
+      <!-- Brand -->
+      <div class="mb-8 flex flex-col items-center gap-4">
+        <div class="grid h-12 w-12 place-items-center rounded-xl bg-white text-[#16202e] shadow-sm border border-line">
+          <AppIcon name="i-file" class="h-6 w-6" />
+        </div>
+        <div class="text-center">
+          <h1 class="text-xl font-bold leading-tight text-ink">GECO Asia</h1>
+          <p class="mt-1 text-[13px] text-ink-3">HR Business Partner Portal · Southeast Asia Operations</p>
         </div>
       </div>
 
-      <h1 class="mb-1 text-xl font-semibold">Sign in</h1>
-      <p class="mb-6 text-sm text-muted-foreground">Use your HR account to continue.</p>
+      <!-- Sign-in card -->
+      <form
+        class="rounded-[16px] border border-line bg-white p-7 shadow-md"
+        novalidate
+        @submit.prevent="handleSubmit"
+      >
+        <h2 class="text-lg font-semibold text-ink">Sign in</h2>
+        <p class="mb-6 mt-1 text-[13px] text-ink-3">Use your GECO HR credentials to continue.</p>
 
-      <form @submit.prevent="handleSubmit" class="space-y-4">
-        <div>
-          <label class="mb-1 block text-sm font-medium">Email</label>
+        <!-- Error banner -->
+        <div
+          v-if="error"
+          role="alert"
+          class="mb-5 rounded-[10px] border border-[#e4b4b4] bg-status-danger-soft px-4 py-3 text-[13px] font-medium text-[#c14b4b]"
+        >
+          {{ error }}
+        </div>
+
+        <!-- Email -->
+        <label class="mb-4 block">
+          <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Email</span>
           <input
             v-model="email"
             type="email"
             required
-            class="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            autocomplete="username"
+            placeholder="you@geco.asia"
+            class="h-11 w-full rounded-[10px] border border-[#d5dee8] bg-white px-4 text-sm text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-ink-4 hover:border-[#b9c8d8] focus:border-[#12607A] focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]"
           />
-        </div>
-        <div>
-          <label class="mb-1 block text-sm font-medium">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            required
-            class="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
+        </label>
 
-        <div v-if="error" class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {{ error }}
-        </div>
+        <!-- Password -->
+        <label class="mb-6 block">
+          <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Password</span>
+          <span class="relative block">
+            <input
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              required
+              autocomplete="current-password"
+              placeholder="••••••••"
+              class="h-11 w-full rounded-[10px] border border-[#d5dee8] bg-white px-4 pr-11 text-sm text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-ink-4 hover:border-[#b9c8d8] focus:border-[#12607A] focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]"
+            />
+            <button
+              type="button"
+              class="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center text-ink-3 transition-colors hover:text-ink"
+              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              @click="showPassword = !showPassword"
+            >
+              <EyeOff v-if="showPassword" class="h-4 w-4" />
+              <Eye v-else class="h-4 w-4" />
+            </button>
+          </span>
+        </label>
 
+        <!-- Submit -->
         <button
           type="submit"
-          :disabled="submitting"
-          class="w-full text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-full text-sm px-4 py-2.5 focus:outline-none"
+          :disabled="loading || !email || !password"
+          class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#12607A] bg-[#12607A] text-sm font-semibold text-white transition-colors hover:border-[#0E4C63] hover:bg-[#0E4C63] disabled:cursor-not-allowed disabled:opacity-55"
         >
-          {{ submitting ? 'Signing in…' : 'Sign in' }}
+          <AppIcon v-if="!loading" name="i-send" class="h-4 w-4" />
+          <span
+            v-else
+            class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+            aria-hidden="true"
+          ></span>
+          {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
-      </form>
 
-      <div class="mt-6 rounded-md bg-muted p-3 text-xs text-muted-foreground">
-        <div class="font-medium mb-1">Demo accounts (seed data)</div>
-        <div>tricia.almodiente@geco.asia / Geco@2026</div>
-        <div>mika.santos@geco.asia / Geco@2026</div>
-        <div>ramon.cruz@geco.asia / Geco@2026</div>
-      </div>
+        <p class="mt-5 text-center text-xs text-ink-4">
+          Demo: tricia.almodiente@geco.asia · Geco@2026
+        </p>
+      </form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
-const route = useRoute()
 const auth = useAuthStore()
 
 const email = ref('')
 const password = ref('')
+const showPassword = ref(false)
+const loading = ref(false)
 const error = ref('')
-const submitting = ref(false)
 
 async function handleSubmit() {
+  if (loading.value) return
+
+  loading.value = true
   error.value = ''
-  submitting.value = true
+
   try {
-    await auth.signIn(email.value, password.value)
-    const redirect = (route.query.redirect as string) || '/offboarding-employees'
-    router.push(redirect)
-  } catch (e: any) {
-    error.value = e.message || 'Invalid credentials'
+    await auth.signIn(email.value.trim(), password.value)
+
+    // ✅ FIXED: land on the Dashboard after a successful login
+    router.push('/dashboard')
+  } catch (err: any) {
+    const msg = err?.message || ''
+    error.value = msg.includes('Invalid login credentials')
+      ? 'Invalid email or password. Please try again.'
+      : msg || 'Sign-in failed. Please try again.'
   } finally {
-    submitting.value = false
+    loading.value = false
   }
 }
 </script>

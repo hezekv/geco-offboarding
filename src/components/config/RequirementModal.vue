@@ -76,7 +76,7 @@
             </label>
 
             <label class="mb-5 block">
-              <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Instructions</span>
+              <span class="mb-2 block text-xs font-medium tracking-[..2px] text-ink-3">Instructions</span>
               <textarea
                 v-model="sub.instructions"
                 :class="fieldCls"
@@ -111,8 +111,9 @@
                     <span class="block truncate text-[13px] font-medium leading-[1.3] text-ink">
                       {{ file.file_name }}
                     </span>
+                    <!-- UPDATED: short kind via fileKind() -->
                     <span class="mt-0.5 block text-xs leading-[1.3] text-ink-3">
-                      {{ (file.file_type || 'file').split('/').pop()?.toUpperCase() }} · {{ formatFileSize(file.file_size) }}
+                      {{ fileKind(file.file_name, file.file_type) }} · {{ formatFileSize(file.file_size) }}
                     </span>
                   </span>
                   <button
@@ -126,7 +127,7 @@
                     type="button"
                     aria-label="Remove file"
                     class="absolute -right-[9px] -top-[9px] grid h-5 w-5 place-items-center rounded-full bg-[#cfe0ed] text-ink transition-colors hover:bg-[#bcd4e6]"
-                    @click="dismissFile(sub, Number(fIdx))"
+                    @click="dismissFile(sub, fIdx)"
                   >
                     <AppIcon name="i-x" class="h-2.5 w-2.5" />
                   </button>
@@ -210,7 +211,8 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
-import { formatFileSize } from '@/lib/utils'
+// UPDATED: import fileKind
+import { formatFileSize, fileKind } from '@/lib/utils'
 
 const props = defineProps<{ open: boolean; editId?: string | null }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved'): void }>()
@@ -220,7 +222,7 @@ const auth = useAuthStore()
 const isEdit = computed(() => !!props.editId)
 
 const fieldCls =
-  'w-full rounded-[10px] border border-line bg-white px-[14px] py-[11px] text-sm leading-[1.45] text-ink transition-[border-color,box-shadow,background] duration-150 placeholder:text-ink-3/75 hover:border-[#b9c8d8] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]'
+  'w-full rounded-[10px] border border-line bg-white px-[14px] py-[11px] text-sm leading-[1.45] text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-ink-3/75 hover:border-[#b9c8d8] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]'
 
 const saving = ref(false)
 const nameError = ref('')

@@ -661,8 +661,10 @@ async function onSubFilesPicked(e: Event, sub: any) {
       const path = `offboarding/${sub.id}/${Date.now()}_${f.name}`
       const { error: upErr } = await supabase.storage.from('config-files').upload(path, f)
       if (upErr) throw upErr
+      // FIX #7: source_file_id is required (nullable) per supabase-types.ts
       const { error: dbErr } = await supabase.from('offboarding_files').insert({
         offboarding_sub_requirement_id: sub.id,
+        source_file_id: null,
         storage_path: path,
         file_name: f.name,
         file_type: f.type,
@@ -738,8 +740,7 @@ async function handleArchive() {
   }
 }
 
-// FIXED: explicit bottom-up deletion (files → subs → requirements → offboarding)
-// so the child-table guard triggers can always resolve their still-existing parent.
+// Explicit bottom-up deletion so child-table guard triggers can resolve their parents
 async function handleDelete() {
   if (!confirm('Are you sure you want to delete this draft? This cannot be undone.')) return
 

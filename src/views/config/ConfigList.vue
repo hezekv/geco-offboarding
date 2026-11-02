@@ -165,9 +165,10 @@
                       </div>
 
                       <!-- Card content (dimmed + inert while pending delete) -->
+                      <!-- FIX #5: inert expects Booleanish — use true / undefined -->
                       <div
                         :class="isDimmed(config.id, sub.id) ? 'is-dimmed opacity-55 grayscale select-none' : ''"
-                        :inert="isDimmed(config.id, sub.id) ? '' : null"
+                        :inert="isDimmed(config.id, sub.id) ? true : undefined"
                       >
                         <!-- Card header -->
                         <header class="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -245,11 +246,11 @@
                                 <AppIcon name="i-file" class="h-5 w-5 flex-shrink-0 text-ink-4" />
                                 <span class="min-w-0 flex-1">
                                   <span class="block truncate text-[13px] font-semibold text-ink-2">{{ file.file_name }}</span>
-                                  <!-- UPDATED: short kind via fileKind() -->
                                   <span class="mt-0.5 block text-[11.5px] text-ink-4">{{ fileKind(file.file_name, file.file_type) }} · {{ formatFileSize(file.file_size) }}</span>
                                 </span>
                                 <button type="button" class="h-8 flex-shrink-0 rounded-lg bg-[#d9e7f2] px-4 text-[12.5px] font-semibold text-brand transition-colors hover:bg-[#c9ddee]" @click="openSigned(file.storage_path)">Open</button>
-                                <button type="button" aria-label="Remove file" class="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#c9d5e1] text-[#3c5064] transition-colors hover:bg-[#b8c7d6]" @click="dismissEditFile(fIdx)">
+                                <!-- FIX #6: coerce v-for index to number -->
+                                <button type="button" aria-label="Remove file" class="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#c9d5e1] text-[#3c5064] transition-colors hover:bg-[#b8c7d6]" @click="dismissEditFile(Number(fIdx))">
                                   <AppIcon name="i-x" class="h-2 w-2" />
                                 </button>
                               </li>
@@ -284,7 +285,6 @@
                                 <AppIcon name="i-file" class="h-5 w-5 flex-shrink-0 text-ink-4" />
                                 <span class="min-w-0 flex-1">
                                   <span class="block truncate text-[13px] font-semibold" :class="sub.is_disabled ? 'text-ink-4' : 'text-ink-2'">{{ file.file_name }}</span>
-                                  <!-- UPDATED: short kind via fileKind() -->
                                   <span class="mt-0.5 block text-[11.5px] text-ink-4">{{ fileKind(file.file_name, file.file_type) }} · {{ formatFileSize(file.file_size) }}</span>
                                 </span>
                                 <button type="button" class="h-8 flex-shrink-0 rounded-lg bg-[#d9e7f2] px-4 text-[12.5px] font-semibold text-brand transition-colors hover:bg-[#c9ddee]" @click="openSigned(file.storage_path)">Open</button>
@@ -325,7 +325,6 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
-// UPDATED: import fileKind
 import { formatFileSize, fileKind } from '@/lib/utils'
 import RequirementModal from '@/components/config/RequirementModal.vue'
 

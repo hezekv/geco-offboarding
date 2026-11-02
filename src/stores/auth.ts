@@ -6,11 +6,13 @@ import type { Tables } from '@/lib/supabase-types'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<any>(null)
   const profile = ref<Tables<'profiles'> | null>(null)
+  const consultant = ref<any>(null) // ← ADDED: Tracks consultant-specific data
   const loading = ref(true)
 
   const isAuthenticated = computed(() => !!user.value)
-  const fullName = computed(() => profile.value?.full_name ?? 'HR User')
-  const role = computed(() => profile.value?.role ?? 'hrbp')
+  const fullName = computed(() => profile.value?.full_name ?? user.value?.email ?? 'User')
+  const role = computed(() => profile.value?.role ?? null)
+  const consultantId = computed<string | null>(() => consultant.value?.id ?? null) // ← ADDED
 
   async function init() {
     try {
@@ -24,7 +26,19 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function loadProfile(userId: string) {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
-    profile.value = data
+    profile.value = data ?? null
+    
+    // ← ADDED: If the user is a consultant, fetch their specific consultant record
+    if (data?.role === 'consultant') {
+      const { data: cons } = await supabase
+        .from('consultants')
+        .select('*')
+        .eq('user_id', userId)
+        .single()
+      consultant.value = cons ?? null
+    } else {
+      consultant.value = null
+    }
   }
 
   async function signIn(email: string, password: string) {
@@ -38,14 +52,31 @@ export const useAuthStore = defineStore('auth', () => {
     await supabase.auth.signOut()
     user.value = null
     profile.value = null
+    consultant.value = null // ← ADDED: Clear consultant state on logout
   }
 
   // Listen for auth state changes (e.g., token refresh, sign-out from another tab)
   supabase.auth.onAuthStateChange(async (_event, session) => {
     user.value = session?.user ?? null
-    if (user.value) await loadProfile(user.value.id)
-    else profile.value = null
+    if (user.value) {
+      await loadProfile(user.value.id)
+    } else {
+      profile.value = null
+      consultant.value = null // ← ADDED
+    }
   })
 
-  return { user, profile, loading, isAuthenticated, fullName, role, init, signIn, signOut }
+  return { 
+    user, 
+    profile, 
+    consultant, // ← ADDED
+    loading, 
+    isAuthenticated, 
+    fullName, 
+    role, 
+    consultantId, // ← ADDED
+    init, 
+    signIn, 
+    signOut 
+  }
 })

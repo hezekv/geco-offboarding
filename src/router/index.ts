@@ -2,8 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { defineComponent, h } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
-// Inline placeholder for modules outside MVP scope (Consultants, Contacts, Performance).
-// If you already have stub view files for these, you can swap this back to lazy imports.
+// Inline placeholder for modules outside MVP scope
 const PlaceholderView = defineComponent({
   name: 'PlaceholderView',
   setup() {
@@ -19,6 +18,11 @@ const PlaceholderView = defineComponent({
   },
 })
 
+// Helper to determine the default landing page based on role
+function homeFor(role: string | null) {
+  return role === 'consultant' ? '/portal' : '/dashboard'
+}
+
 const routes: RouteRecordRaw[] = [
   // ----- Public -----
   {
@@ -28,12 +32,12 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
 
-  // ----- Authenticated shell -----
+  // ----- HR / Admin shell -----
   {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
+    meta: { roles: ['super_admin', 'hrbp'] }, // ← ADDED: Restrict to HR roles
     children: [
-      // ✅ FIX 2a: root path now lands on the Dashboard (was /offboarding-employees)
       { path: '', redirect: '/dashboard' },
 
       {
@@ -53,8 +57,7 @@ const routes: RouteRecordRaw[] = [
         name: 'offboarding-config',
         component: () => import('@/views/config/ConfigList.vue'),
       },
-      // Legacy: creation & editing now happen inside RequirementModal.
-      // These two routes (and ConfigEditor.vue) can be removed in a cleanup pass.
+      // Legacy routes (can be removed in cleanup)
       {
         path: 'offboarding-config/new',
         name: 'offboarding-config-new',
@@ -85,7 +88,22 @@ const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // Fallback: unknown paths redirect to Dashboard (guard bounces to /login if unauthenticated)
+  // ----- Consultant portal shell -----
+  {
+    path: '/portal',
+    component: () => import('@/layouts/ConsultantLayout.vue'),
+    meta: { roles: ['consultant'] }, // ← ADDED: Restrict to consultant role
+    children: [
+      { path: '', redirect: '/portal/checklist' },
+      {
+        path: 'checklist',
+        name: 'portal-checklist',
+        component: () => import('@/views/portal/ConsultantChecklist.vue'),
+      },
+    ],
+  },
+
+  // Fallback: unknown paths redirect based on role
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
 ]
 
@@ -97,19 +115,28 @@ const router = createRouter({
   },
 })
 
-// ----- Auth guard -----
+// ----- Auth & Role guard -----
 router.beforeEach((to) => {
   const auth = useAuthStore()
-  const isPublic = to.meta.public === true
 
-  // Unauthenticated users may only access public routes (login)
-  if (!auth.user && !isPublic) {
+  // 1. Public routes (login)
+  if (to.meta.public) {
+    if (auth.user && to.name === 'login') {
+      return { path: homeFor(auth.role) } // Bounce authenticated users to their correct home
+    }
+    return true
+  }
+
+  // 2. Unauthenticated users trying to access protected routes
+  if (!auth.user) {
     return { path: '/login' }
   }
 
-  // ✅ FIX 2b: authenticated users visiting /login go straight to the Dashboard
-  if (auth.user && to.name === 'login') {
-    return { path: '/dashboard' }
+  // 3. Role-based access control
+  const allowedRoles = to.meta.roles as string[] | undefined
+  if (allowedRoles && (!auth.role || !allowedRoles.includes(auth.role))) {
+    // User doesn't have the required role, send them to their appropriate home
+    return { path: homeFor(auth.role) }
   }
 
   return true

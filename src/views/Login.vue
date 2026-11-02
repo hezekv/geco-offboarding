@@ -3,7 +3,7 @@
     <div class="w-full max-w-[420px]">
       <!-- Brand -->
       <div class="mb-8 flex flex-col items-center gap-4">
-        <div class="grid h-12 w-12 place-items-center rounded-xl bg-white text-[#16202e] shadow-sm border border-line">
+        <div class="grid h-12 w-12 place-items-center rounded-xl border border-line bg-white text-[#16202e] shadow-sm">
           <AppIcon name="i-file" class="h-6 w-6" />
         </div>
         <div class="text-center">
@@ -19,7 +19,7 @@
         @submit.prevent="handleSubmit"
       >
         <h2 class="text-lg font-semibold text-ink">Sign in</h2>
-        <p class="mb-6 mt-1 text-[13px] text-ink-3">Use your GECO HR credentials to continue.</p>
+        <p class="mb-6 mt-1 text-[13px] text-ink-3">Use your GECO credentials to continue.</p>
 
         <!-- Error banner -->
         <div
@@ -83,7 +83,7 @@
         </button>
 
         <p class="mt-5 text-center text-xs text-ink-4">
-          Demo: tricia.almodiente@geco.asia · Geco@2026
+          HR: tricia.almodiente@geco.asia · Consultant: kyay.mon@geco.asia · Geco@2026
         </p>
       </form>
     </div>
@@ -114,8 +114,8 @@ async function handleSubmit() {
   try {
     await auth.signIn(email.value.trim(), password.value)
 
-    // ✅ FIXED: land on the Dashboard after a successful login
-    router.push('/dashboard')
+    // ✅ OPTION 2 FIX: Clean comparison, no type casting needed!
+    router.push(auth.role === 'consultant' ? '/portal' : '/dashboard')
   } catch (err: any) {
     const msg = err?.message || ''
     error.value = msg.includes('Invalid login credentials')

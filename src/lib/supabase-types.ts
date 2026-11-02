@@ -7,8 +7,7 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[];
-
-export type ProfileRole = "super_admin" | "hrbp";
+export type ProfileRole = "consultant" | "hrbp" | "super_admin";
 export type OffboardingStatus =
   | "draft"
   | "sent"

@@ -29,10 +29,10 @@ export const useAuthStore = defineStore('auth', () => {
     profile.value = data ?? null
     
     if (data?.role === 'consultant') {
-      // @ts-expect-error TS2589: Type instantiation is excessively deep (Supabase generic inference limit)
       const { data: cons } = await supabase
         .from('consultants')
         .select('*')
+        // @ts-ignore: 'user_id' exists in the DB, but generated TS types may be out of sync
         .eq('user_id', userId)
         .single()
       

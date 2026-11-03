@@ -1,282 +1,725 @@
-// src/lib/supabase-types.ts
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
-export type ProfileRole = "consultant" | "hrbp" | "super_admin";
-export type OffboardingStatus =
-  | "draft"
-  | "sent"
-  | "in_progress"
-  | "completed"
-  | "archived";
-export type SubRequirementStatus = "pending" | "completed" | "disabled";
+  | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.18"
+  }
   public: {
     Tables: {
-      profiles: {
+      activity_logs: {
         Row: {
-          id: string;
-          full_name: string;
-          email: string | null;
-          role: ProfileRole;
-          region: string;
-        };
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          meta: Json
+        }
         Insert: {
-          id: string;
-          full_name: string;
-          email?: string | null;
-          role?: ProfileRole;
-          region?: string;
-        };
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          meta?: Json
+        }
         Update: {
-          full_name?: string;
-          email?: string | null;
-          role?: ProfileRole;
-          region?: string;
-        };
-        Relationships: [];
-      };
-      consultants: {
-        Row: {
-          id: string;
-          full_name: string;
-          job_title: string | null;
-          email: string | null;
-          client: string | null;
-          project: string | null;
-          department: string | null;
-          country: string | null;
-          engagement_start: string | null;
-          engagement_end: string | null;
-        };
-        Insert: Omit<
-          Database["public"]["Tables"]["consultants"]["Row"],
-          "id"
-        > & { id?: string };
-        Update: Partial<Database["public"]["Tables"]["consultants"]["Insert"]>;
-        Relationships: [];
-      };
-      config_requirements: {
-        Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          is_active: boolean;
-          sort_order: number;
-          created_by: string | null;
-        };
-        Insert: {
-          name: string;
-          description?: string | null;
-          is_active?: boolean;
-          sort_order?: number;
-          created_by?: string | null;
-          id?: string;
-        };
-        Update: Partial<
-          Omit<
-            Database["public"]["Tables"]["config_requirements"]["Insert"],
-            "id"
-          >
-        >;
-        Relationships: [
-          { foreignKeyName: "config_requirements_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
-        ];
-      };
-      config_sub_requirements: {
-        Row: {
-          id: string;
-          requirement_id: string;
-          title: string;
-          instructions: string | null;
-          resource_url: string | null;
-          is_disabled: boolean;
-          sort_order: number;
-        };
-        Insert: Omit<
-          Database["public"]["Tables"]["config_sub_requirements"]["Row"],
-          "id"
-        > & { id?: string };
-        Update: Partial<
-          Database["public"]["Tables"]["config_sub_requirements"]["Insert"]
-        >;
-        Relationships: [
-          { foreignKeyName: "config_sub_requirements_requirement_id_fkey"; columns: ["requirement_id"]; isOneToOne: false; referencedRelation: "config_requirements"; referencedColumns: ["id"] },
-        ];
-      };
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          meta?: Json
+        }
+        Relationships: []
+      }
       config_files: {
         Row: {
-          id: string;
-          sub_requirement_id: string;
-          storage_path: string;
-          file_name: string;
-          file_type: string | null;
-          file_size: number;
-          uploaded_by: string | null;
-        };
-        Insert: Omit<
-          Database["public"]["Tables"]["config_files"]["Row"],
-          "id"
-        > & { id?: string };
-        Update: Partial<Database["public"]["Tables"]["config_files"]["Insert"]>;
-        Relationships: [
-          { foreignKeyName: "config_files_sub_requirement_id_fkey"; columns: ["sub_requirement_id"]; isOneToOne: false; referencedRelation: "config_sub_requirements"; referencedColumns: ["id"] },
-          { foreignKeyName: "config_files_uploaded_by_fkey"; columns: ["uploaded_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
-        ];
-      };
-      offboardings: {
-        Row: {
-          id: string;
-          ob_ref: string;
-          consultant_id: string;
-          assigned_hr_id: string | null;
-          last_working_day: string | null;
-          status: OffboardingStatus;
-          sent_at: string | null;
-          sent_by: string | null;
-          completed_at: string | null;
-          share_token: string;
-          created_by: string | null;
-          created_at: string;
-        };
+          created_at: string
+          file_name: string
+          file_size: number
+          file_type: string | null
+          id: string
+          storage_path: string
+          sub_requirement_id: string
+          uploaded_by: string | null
+        }
         Insert: {
-          consultant_id: string;
-          assigned_hr_id?: string | null;
-          last_working_day?: string | null;
-          status?: OffboardingStatus;
-          created_by?: string | null;
-          id?: string;
-        };
+          created_at?: string
+          file_name: string
+          file_size?: number
+          file_type?: string | null
+          id?: string
+          storage_path: string
+          sub_requirement_id: string
+          uploaded_by?: string | null
+        }
         Update: {
-          assigned_hr_id?: string | null;
-          last_working_day?: string | null;
-          status?: OffboardingStatus;
-          sent_at?: string | null;
-          sent_by?: string | null;
-          completed_at?: string | null;
-        };
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string | null
+          id?: string
+          storage_path?: string
+          sub_requirement_id?: string
+          uploaded_by?: string | null
+        }
         Relationships: [
-          { foreignKeyName: "offboardings_consultant_id_fkey"; columns: ["consultant_id"]; isOneToOne: false; referencedRelation: "consultants"; referencedColumns: ["id"] },
-          { foreignKeyName: "offboardings_assigned_hr_id_fkey"; columns: ["assigned_hr_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
-          { foreignKeyName: "offboardings_sent_by_fkey"; columns: ["sent_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
-          { foreignKeyName: "offboardings_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
-        ];
-      };
-      offboarding_requirements: {
+          {
+            foreignKeyName: "config_files_sub_requirement_id_fkey"
+            columns: ["sub_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "config_sub_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "config_files_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_requirements: {
         Row: {
-          id: string;
-          offboarding_id: string;
-          source_config_id: string | null;
-          name: string;
-          description: string | null;
-          sort_order: number;
-        };
-        Insert: Omit<
-          Database["public"]["Tables"]["offboarding_requirements"]["Row"],
-          "id"
-        > & { id?: string };
-        Update: Partial<
-          Database["public"]["Tables"]["offboarding_requirements"]["Insert"]
-        >;
-        Relationships: [
-          { foreignKeyName: "offboarding_requirements_offboarding_id_fkey"; columns: ["offboarding_id"]; isOneToOne: false; referencedRelation: "offboardings"; referencedColumns: ["id"] },
-          { foreignKeyName: "offboarding_requirements_source_config_id_fkey"; columns: ["source_config_id"]; isOneToOne: false; referencedRelation: "config_requirements"; referencedColumns: ["id"] },
-        ];
-      };
-      offboarding_sub_requirements: {
-        Row: {
-          id: string;
-          offboarding_requirement_id: string;
-          title: string;
-          instructions: string | null;
-          resource_url: string | null;
-          status: SubRequirementStatus;
-          completed_at: string | null;
-          completed_by: string | null;
-          sort_order: number;
-        };
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
         Insert: {
-          offboarding_requirement_id: string;
-          title: string;
-          instructions?: string | null;
-          resource_url?: string | null;
-          status?: SubRequirementStatus;
-          completed_at?: string | null;
-          completed_by?: string | null;
-          sort_order?: number;
-          id?: string;
-        };
-        Update: Partial<
-          Database["public"]["Tables"]["offboarding_sub_requirements"]["Insert"]
-        >;
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
         Relationships: [
-          { foreignKeyName: "offboarding_sub_requirements_offboarding_requirement_id_fkey"; columns: ["offboarding_requirement_id"]; isOneToOne: false; referencedRelation: "offboarding_requirements"; referencedColumns: ["id"] },
-          { foreignKeyName: "offboarding_sub_requirements_completed_by_fkey"; columns: ["completed_by"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
-        ];
-      };
+          {
+            foreignKeyName: "config_requirements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      config_sub_requirements: {
+        Row: {
+          created_at: string
+          id: string
+          instructions: string | null
+          is_disabled: boolean
+          requirement_id: string
+          resource_url: string | null
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          is_disabled?: boolean
+          requirement_id: string
+          resource_url?: string | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          is_disabled?: boolean
+          requirement_id?: string
+          resource_url?: string | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_sub_requirements_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "config_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultants: {
+        Row: {
+          client: string | null
+          country: string | null
+          created_at: string
+          department: string | null
+          email: string | null
+          engagement_end: string | null
+          engagement_start: string | null
+          full_name: string
+          id: string
+          job_title: string | null
+          project: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          client?: string | null
+          country?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          engagement_end?: string | null
+          engagement_start?: string | null
+          full_name: string
+          id?: string
+          job_title?: string | null
+          project?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          client?: string | null
+          country?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          engagement_end?: string | null
+          engagement_start?: string | null
+          full_name?: string
+          id?: string
+          job_title?: string | null
+          project?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       offboarding_files: {
         Row: {
-          id: string;
-          offboarding_sub_requirement_id: string;
-          source_file_id: string | null;
-          storage_path: string;
-          file_name: string;
-          file_type: string | null;
-          file_size: number;
-        };
-        Insert: Omit<
-          Database["public"]["Tables"]["offboarding_files"]["Row"],
-          "id"
-        > & { id?: string };
-        Update: Partial<
-          Database["public"]["Tables"]["offboarding_files"]["Insert"]
-        >;
+          created_at: string
+          file_name: string
+          file_size: number
+          file_type: string | null
+          id: string
+          offboarding_sub_requirement_id: string
+          source_file_id: string | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number
+          file_type?: string | null
+          id?: string
+          offboarding_sub_requirement_id: string
+          source_file_id?: string | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string | null
+          id?: string
+          offboarding_sub_requirement_id?: string
+          source_file_id?: string | null
+          storage_path?: string
+        }
         Relationships: [
-          { foreignKeyName: "offboarding_files_offboarding_sub_requirement_id_fkey"; columns: ["offboarding_sub_requirement_id"]; isOneToOne: false; referencedRelation: "offboarding_sub_requirements"; referencedColumns: ["id"] },
-          { foreignKeyName: "offboarding_files_source_file_id_fkey"; columns: ["source_file_id"]; isOneToOne: false; referencedRelation: "config_files"; referencedColumns: ["id"] },
-        ];
-      };
-    };
+          {
+            foreignKeyName: "offboarding_files_offboarding_sub_requirement_id_fkey"
+            columns: ["offboarding_sub_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_sub_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_requirements: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          offboarding_id: string
+          sort_order: number
+          source_config_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          offboarding_id: string
+          sort_order?: number
+          source_config_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          offboarding_id?: string
+          sort_order?: number
+          source_config_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_requirements_offboarding_id_fkey"
+            columns: ["offboarding_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_progress"
+            referencedColumns: ["offboarding_id"]
+          },
+          {
+            foreignKeyName: "offboarding_requirements_offboarding_id_fkey"
+            columns: ["offboarding_id"]
+            isOneToOne: false
+            referencedRelation: "offboardings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_sub_requirements: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          instructions: string | null
+          offboarding_requirement_id: string
+          resource_url: string | null
+          sort_order: number
+          status: Database["public"]["Enums"]["sub_requirement_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          offboarding_requirement_id: string
+          resource_url?: string | null
+          sort_order?: number
+          status?: Database["public"]["Enums"]["sub_requirement_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          offboarding_requirement_id?: string
+          resource_url?: string | null
+          sort_order?: number
+          status?: Database["public"]["Enums"]["sub_requirement_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_sub_requirements_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_sub_requirements_offboarding_requirement_id_fkey"
+            columns: ["offboarding_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_requirement_progress"
+            referencedColumns: ["requirement_id"]
+          },
+          {
+            foreignKeyName: "offboarding_sub_requirements_offboarding_requirement_id_fkey"
+            columns: ["offboarding_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboardings: {
+        Row: {
+          assigned_hr_id: string | null
+          completed_at: string | null
+          consultant_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_working_day: string | null
+          ob_ref: string
+          sent_at: string | null
+          sent_by: string | null
+          share_token: string | null
+          status: Database["public"]["Enums"]["offboarding_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_hr_id?: string | null
+          completed_at?: string | null
+          consultant_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_working_day?: string | null
+          ob_ref: string
+          sent_at?: string | null
+          sent_by?: string | null
+          share_token?: string | null
+          status?: Database["public"]["Enums"]["offboarding_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_hr_id?: string | null
+          completed_at?: string | null
+          consultant_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_working_day?: string | null
+          ob_ref?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          share_token?: string | null
+          status?: Database["public"]["Enums"]["offboarding_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboardings_assigned_hr_id_fkey"
+            columns: ["assigned_hr_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboardings_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboardings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboardings_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          region: string
+          role: Database["public"]["Enums"]["profile_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id: string
+          region?: string
+          role?: Database["public"]["Enums"]["profile_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          region?: string
+          role?: Database["public"]["Enums"]["profile_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
     Views: {
       offboarding_progress: {
         Row: {
-          offboarding_id: string;
-          status: OffboardingStatus;
-          active_tasks: number;
-          completed_tasks: number;
-        };
-        Relationships: [];
-      };
+          active_tasks: number | null
+          completed_tasks: number | null
+          offboarding_id: string | null
+          status: Database["public"]["Enums"]["offboarding_status"] | null
+        }
+        Relationships: []
+      }
       offboarding_requirement_progress: {
         Row: {
-          requirement_id: string;
-          offboarding_id: string;
-          active_tasks: number;
-          completed_tasks: number;
-        };
-        Relationships: [];
-      };
-    };
-    Functions: { [_ in never]: never };
+          active_tasks: number | null
+          completed_tasks: number | null
+          offboarding_id: string | null
+          requirement_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_requirements_offboarding_id_fkey"
+            columns: ["offboarding_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_progress"
+            referencedColumns: ["offboarding_id"]
+          },
+          {
+            foreignKeyName: "offboarding_requirements_offboarding_id_fkey"
+            columns: ["offboarding_id"]
+            isOneToOne: false
+            referencedRelation: "offboardings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Functions: {
+      current_profile_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["profile_role"]
+      }
+      fn_assert_offboarding_mutable: {
+        Args: { p_offboarding_id: string }
+        Returns: undefined
+      }
+      fn_assert_requirement_mutable: {
+        Args: { p_requirement_id: string }
+        Returns: undefined
+      }
+      fn_assert_subrequirement_mutable: {
+        Args: { p_sub_id: string }
+        Returns: undefined
+      }
+      fn_sync_offboarding_status: {
+        Args: { p_offboarding_id: string }
+        Returns: undefined
+      }
+      is_hr: { Args: never; Returns: boolean }
+      my_consultant_id: { Args: never; Returns: string }
+    }
     Enums: {
-      profile_role: ProfileRole;
-      offboarding_status: OffboardingStatus;
-      sub_requirement_status: SubRequirementStatus;
-    };
-    CompositeTypes: { [_ in never]: never };
-  };
+      offboarding_status:
+        | "draft"
+        | "sent"
+        | "in_progress"
+        | "completed"
+        | "archived"
+      profile_role: "super_admin" | "hrbp" | "consultant"
+      sub_requirement_status: "pending" | "completed" | "disabled"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
 
-// Helper types for easier usage in components
-export type Tables<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Row"];
-export type Inserts<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Insert"];
-export type Updates<T extends keyof Database["public"]["Tables"]> =
-  Database["public"]["Tables"][T]["Update"];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      offboarding_status: [
+        "draft",
+        "sent",
+        "in_progress",
+        "completed",
+        "archived",
+      ],
+      profile_role: ["super_admin", "hrbp", "consultant"],
+      sub_requirement_status: ["pending", "completed", "disabled"],
+    },
+  },
+} as const

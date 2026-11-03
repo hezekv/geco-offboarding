@@ -225,6 +225,7 @@ import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, formatFileSize, fileKind } from '@/lib/utils'
+import { logActivity } from '@/lib/activity'
 
 const auth = useAuthStore()
 
@@ -389,6 +390,8 @@ async function setSubStatus(sub: any, status: 'pending' | 'completed') {
     showFeedback('Failed to update task')
     return
   }
+  // ✅ AUDIT (consultant portal)
+  logActivity(status === 'completed' ? 'task.completed' : 'task.reopened', 'sub_requirement', sub.id, { title: sub.title, portal: 'consultant' })
   sub.status = status
   await syncRecordStatus()
   await fetchAll()
@@ -426,13 +429,12 @@ function triggerUpload(subId: string) {
 async function onFilesPicked(e: Event, sub: any) {
   const input = e.target as HTMLInputElement
   if (!input.files?.length) return
+  const count = input.files.length
   try {
     for (const f of Array.from(input.files)) {
       const path = `offboarding/${sub.id}/${Date.now()}_${f.name}`
       const { error: upErr } = await supabase.storage.from('config-files').upload(path, f)
       if (upErr) throw upErr
-      
-      // FIXED: Added source_file_id: null to satisfy the generated Insert type
       const { error: dbErr } = await supabase.from('offboarding_files').insert({
         offboarding_sub_requirement_id: sub.id,
         source_file_id: null,
@@ -443,6 +445,8 @@ async function onFilesPicked(e: Event, sub: any) {
       })
       if (dbErr) throw dbErr
     }
+    // ✅ AUDIT (consultant portal)
+    logActivity('file.uploaded', 'sub_requirement', sub.id, { count, portal: 'consultant' })
     showFeedback('File(s) uploaded')
     await fetchAll()
   } catch (err) {
@@ -460,6 +464,8 @@ async function removeFile(file: any) {
     console.error('Error removing file:', error)
     showFeedback('Failed to remove file')
   } else {
+    // ✅ AUDIT (consultant portal)
+    logActivity('file.removed', 'file', file.id, { file_name: file.file_name, portal: 'consultant' })
     await supabase.storage.from('config-files').remove([file.storage_path])
     showFeedback('File removed')
     await fetchAll()

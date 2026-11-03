@@ -378,6 +378,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate, formatFileSize, fileKind } from '@/lib/utils'
 import { Archive } from 'lucide-vue-next'
+import { logActivity } from '@/lib/activity'
 
 const route = useRoute()
 const router = useRouter()
@@ -569,6 +570,8 @@ async function setSubStatus(sub: any, status: 'pending' | 'completed') {
     console.error('Error updating sub-requirement:', error)
     showFeedback('Failed to update status')
   } else {
+    // ✅ AUDIT
+    logActivity(status === 'completed' ? 'task.completed' : 'task.reopened', 'sub_requirement', sub.id, { title: sub.title })
     showFeedback(status === 'completed' ? 'Marked as completed' : 'Marked as pending')
     await fetchData()
   }
@@ -582,6 +585,8 @@ async function handleReqEdit(req: any) {
     console.error('Error renaming requirement:', error)
     showFeedback('Failed to rename requirement')
   } else {
+    // ✅ AUDIT
+    logActivity('requirement.renamed', 'requirement', req.id, { old_name: req.name, new_name: name.trim() })
     showFeedback('Requirement updated')
     await fetchData()
   }
@@ -615,6 +620,8 @@ async function handleReqDelete(req: any) {
       .eq('id', reqId)
     if (reqErr) throw reqErr
 
+    // ✅ AUDIT
+    logActivity('requirement.deleted', 'requirement', reqId, { name: req.name })
     showFeedback('Requirement deleted')
     await fetchData()
   } catch (err: any) {
@@ -637,6 +644,8 @@ async function handleAddSub(req: any) {
     console.error('Error adding sub-requirement:', error)
     showFeedback('Failed to add sub-requirement')
   } else {
+    // ✅ AUDIT
+    logActivity('requirement.added', 'requirement', req.id, { sub_title: title.trim() })
     expandedRequirements.value.add(req.id)
     showFeedback('Sub-requirement added')
     await fetchData()
@@ -656,12 +665,12 @@ function triggerSubUpload(subId: string) {
 async function onSubFilesPicked(e: Event, sub: any) {
   const input = e.target as HTMLInputElement
   if (!input.files?.length) return
+  const count = input.files.length
   try {
     for (const f of Array.from(input.files)) {
       const path = `offboarding/${sub.id}/${Date.now()}_${f.name}`
       const { error: upErr } = await supabase.storage.from('config-files').upload(path, f)
       if (upErr) throw upErr
-      // FIX #7: source_file_id is required (nullable) per supabase-types.ts
       const { error: dbErr } = await supabase.from('offboarding_files').insert({
         offboarding_sub_requirement_id: sub.id,
         source_file_id: null,
@@ -672,6 +681,8 @@ async function onSubFilesPicked(e: Event, sub: any) {
       })
       if (dbErr) throw dbErr
     }
+    // ✅ AUDIT
+    logActivity('file.uploaded', 'sub_requirement', sub.id, { count })
     showFeedback('File(s) uploaded')
     await fetchData()
   } catch (err) {
@@ -690,6 +701,8 @@ async function handleRemoveFile(file: any) {
     console.error('Error removing file:', error)
     showFeedback('Failed to remove file')
   } else {
+    // ✅ AUDIT
+    logActivity('file.removed', 'file', file.id, { file_name: file.file_name })
     showFeedback('File removed')
     await fetchData()
   }
@@ -720,6 +733,8 @@ async function handleSend() {
     console.error('Error sending:', error)
     showFeedback('Failed to send offboarding')
   } else {
+    // ✅ AUDIT
+    logActivity('offboarding.sent', 'offboarding', offboarding.value.id, { ob_ref: offboarding.value.ob_ref })
     showFeedback('Sent to consultant successfully')
     await fetchData()
   }
@@ -735,16 +750,20 @@ async function handleArchive() {
     console.error('Error archiving:', error)
     showFeedback('Failed to archive')
   } else {
+    // ✅ AUDIT
+    logActivity('offboarding.archived', 'offboarding', offboarding.value.id, { ob_ref: offboarding.value.ob_ref })
     showFeedback('Record archived')
     router.push('/offboarding-employees')
   }
 }
 
-// Explicit bottom-up deletion so child-table guard triggers can resolve their parents
+// Bottom-up deletion (files → subs → requirements → offboarding) so the
+// child-table guard triggers can always resolve their still-existing parent.
 async function handleDelete() {
   if (!confirm('Are you sure you want to delete this draft? This cannot be undone.')) return
 
   const obId = offboarding.value.id
+  const obRef = offboarding.value.ob_ref
 
   try {
     // 1) Collect requirement IDs for this offboarding
@@ -797,6 +816,8 @@ async function handleDelete() {
       .eq('id', obId)
     if (obErr) throw obErr
 
+    // ✅ AUDIT (logged after successful delete, using captured ids)
+    logActivity('offboarding.deleted', 'offboarding', obId, { ob_ref: obRef })
     showFeedback('Record deleted')
     router.push('/offboarding-employees')
   } catch (err: any) {

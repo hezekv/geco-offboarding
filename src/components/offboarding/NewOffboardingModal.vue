@@ -105,6 +105,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { logActivity } from '@/lib/activity'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved'): void }>()
@@ -252,25 +253,24 @@ async function handleCreate() {
   saving.value = true
   try {
     const obRef = await nextObRef()
-
-    // FIX #4: loosely typed payload — supabase-types.ts ob_ref declaration is stale
-    // vs the live DB (runtime accepts strings); cast keeps vue-tsc from blocking the build.
-    const obPayload: any = {
-      ob_ref: obRef,
-      consultant_id: form.value.consultantId,
-      assigned_hr_id: form.value.hrId,
-      last_working_day: form.value.lastWorkingDay,
-      status: 'draft',
-    }
-
     const { data: ob, error } = await supabase
       .from('offboardings')
-      .insert(obPayload)
+      .insert({
+        ob_ref: obRef,
+        consultant_id: form.value.consultantId,
+        assigned_hr_id: form.value.hrId,
+        last_working_day: form.value.lastWorkingDay,
+        status: 'draft',
+      })
       .select()
       .single()
     if (error) throw error
 
     await snapshotConfigs(ob.id)
+
+    // ✅ AUDIT: record creation
+    logActivity('offboarding.created', 'offboarding', ob.id, { ob_ref: ob.ob_ref })
+
     emit('saved')
   } catch (err: any) {
     console.error('Creation error:', err)

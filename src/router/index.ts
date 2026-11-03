@@ -2,7 +2,6 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { defineComponent, h } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
-// Inline placeholder for modules outside MVP scope
 const PlaceholderView = defineComponent({
   name: 'PlaceholderView',
   setup() {
@@ -18,7 +17,6 @@ const PlaceholderView = defineComponent({
   },
 })
 
-// Helper to determine the default landing page based on role
 function homeFor(role: string | null) {
   return role === 'consultant' ? '/portal' : '/dashboard'
 }
@@ -36,55 +34,19 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
-    meta: { roles: ['super_admin', 'hrbp'] }, // ← ADDED: Restrict to HR roles
+    meta: { roles: ['super_admin', 'hrbp'] },
     children: [
       { path: '', redirect: '/dashboard' },
+      { path: 'dashboard', name: 'dashboard', component: () => import('@/views/Dashboard.vue') },
 
-      {
-        path: 'dashboard',
-        name: 'dashboard',
-        component: () => import('@/views/Dashboard.vue'),
-      },
-
-      // Outside MVP scope
       { path: 'consultants', name: 'consultants', component: PlaceholderView },
       { path: 'contacts', name: 'contacts', component: PlaceholderView },
       { path: 'performance', name: 'performance', component: PlaceholderView },
 
-      // Offboarding Configurations
-      {
-        path: 'offboarding-config',
-        name: 'offboarding-config',
-        component: () => import('@/views/config/ConfigList.vue'),
-      },
-      // Legacy routes (can be removed in cleanup)
-      {
-        path: 'offboarding-config/new',
-        name: 'offboarding-config-new',
-        component: () => import('@/views/config/ConfigEditor.vue'),
-      },
-      {
-        path: 'offboarding-config/:id/edit',
-        name: 'offboarding-config-edit',
-        component: () => import('@/views/config/ConfigEditor.vue'),
-      },
+      { path: 'offboarding-config', name: 'offboarding-config', component: () => import('@/views/config/ConfigList.vue') },
 
-      // Offboarding Employees
-      {
-        path: 'offboarding-employees',
-        name: 'offboarding-employees',
-        component: () => import('@/views/offboarding/OffboardingList.vue'),
-      },
-      {
-        path: 'offboarding-employees/new',
-        name: 'offboarding-new',
-        component: () => import('@/views/offboarding/OffboardingCreate.vue'),
-      },
-      {
-        path: 'offboarding-employees/:id',
-        name: 'offboarding-profile',
-        component: () => import('@/views/offboarding/OffboardingProfile.vue'),
-      },
+      { path: 'offboarding-employees', name: 'offboarding-employees', component: () => import('@/views/offboarding/OffboardingList.vue') },
+      { path: 'offboarding-employees/:id', name: 'offboarding-profile', component: () => import('@/views/offboarding/OffboardingProfile.vue') },
     ],
   },
 
@@ -92,18 +54,13 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/portal',
     component: () => import('@/layouts/ConsultantLayout.vue'),
-    meta: { roles: ['consultant'] }, // ← ADDED: Restrict to consultant role
+    meta: { roles: ['consultant'] },
     children: [
       { path: '', redirect: '/portal/checklist' },
-      {
-        path: 'checklist',
-        name: 'portal-checklist',
-        component: () => import('@/views/portal/ConsultantChecklist.vue'),
-      },
+      { path: 'checklist', name: 'portal-checklist', component: () => import('@/views/portal/ConsultantChecklist.vue') },
     ],
   },
 
-  // Fallback: unknown paths redirect based on role
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
 ]
 
@@ -115,28 +72,33 @@ const router = createRouter({
   },
 })
 
-// ----- Auth & Role guard -----
-router.beforeEach((to) => {
+// ----- Auth & Role guard (reload-safe) -----
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  // 1. Public routes (login)
+  // ✅ FIX: wait for session + profile BEFORE any guard decision (kills the F5 race)
+  await auth.init()
+
+  // 1. Public routes
   if (to.meta.public) {
-    if (auth.user && to.name === 'login') {
-      return { path: homeFor(auth.role) } // Bounce authenticated users to their correct home
-    }
+    if (auth.user && to.name === 'login') return { path: homeFor(auth.role) }
     return true
   }
 
-  // 2. Unauthenticated users trying to access protected routes
-  if (!auth.user) {
+  // 2. Not signed in
+  if (!auth.user) return { path: '/login' }
+
+  // 3. Session exists but profile row missing → clean sign-out instead of a loop
+  if (!auth.role) {
+    await auth.signOut()
     return { path: '/login' }
   }
 
-  // 3. Role-based access control
+  // 4. Role-based access control (with loop breaker)
   const allowedRoles = to.meta.roles as string[] | undefined
-  if (allowedRoles && (!auth.role || !allowedRoles.includes(auth.role))) {
-    // User doesn't have the required role, send them to their appropriate home
-    return { path: homeFor(auth.role) }
+  if (allowedRoles && !allowedRoles.includes(auth.role)) {
+    const home = homeFor(auth.role)
+    return to.path === home ? true : { path: home }
   }
 
   return true

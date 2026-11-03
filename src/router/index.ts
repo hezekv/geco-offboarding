@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { defineComponent, h } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
+// Inline placeholder for modules outside MVP scope (Contacts, Performance).
 const PlaceholderView = defineComponent({
   name: 'PlaceholderView',
   setup() {
@@ -17,6 +18,7 @@ const PlaceholderView = defineComponent({
   },
 })
 
+// Role-aware landing page
 function homeFor(role: string | null) {
   return role === 'consultant' ? '/portal' : '/dashboard'
 }
@@ -39,14 +41,40 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/dashboard' },
       { path: 'dashboard', name: 'dashboard', component: () => import('@/views/Dashboard.vue') },
 
-      { path: 'consultants', name: 'consultants', component: PlaceholderView },
+      // ✅ PHASE 1: Consultants module (replaces placeholder)
+      {
+        path: 'consultants',
+        name: 'consultants',
+        component: () => import('@/views/consultants/ConsultantList.vue'),
+      },
+      {
+        path: 'consultants/:id',
+        name: 'consultant-detail',
+        component: () => import('@/views/consultants/ConsultantDetail.vue'),
+      },
+
+      // Outside MVP scope
       { path: 'contacts', name: 'contacts', component: PlaceholderView },
       { path: 'performance', name: 'performance', component: PlaceholderView },
 
-      { path: 'offboarding-config', name: 'offboarding-config', component: () => import('@/views/config/ConfigList.vue') },
+      // Offboarding Configurations
+      {
+        path: 'offboarding-config',
+        name: 'offboarding-config',
+        component: () => import('@/views/config/ConfigList.vue'),
+      },
 
-      { path: 'offboarding-employees', name: 'offboarding-employees', component: () => import('@/views/offboarding/OffboardingList.vue') },
-      { path: 'offboarding-employees/:id', name: 'offboarding-profile', component: () => import('@/views/offboarding/OffboardingProfile.vue') },
+      // Offboarding Employees
+      {
+        path: 'offboarding-employees',
+        name: 'offboarding-employees',
+        component: () => import('@/views/offboarding/OffboardingList.vue'),
+      },
+      {
+        path: 'offboarding-employees/:id',
+        name: 'offboarding-profile',
+        component: () => import('@/views/offboarding/OffboardingProfile.vue'),
+      },
     ],
   },
 
@@ -57,10 +85,15 @@ const routes: RouteRecordRaw[] = [
     meta: { roles: ['consultant'] },
     children: [
       { path: '', redirect: '/portal/checklist' },
-      { path: 'checklist', name: 'portal-checklist', component: () => import('@/views/portal/ConsultantChecklist.vue') },
+      {
+        path: 'checklist',
+        name: 'portal-checklist',
+        component: () => import('@/views/portal/ConsultantChecklist.vue'),
+      },
     ],
   },
 
+  // Fallback: unknown paths redirect based on role
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
 ]
 
@@ -76,7 +109,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  // ✅ FIX: wait for session + profile BEFORE any guard decision (kills the F5 race)
+  // Wait for session + profile BEFORE any guard decision (kills the F5 race)
   await auth.init()
 
   // 1. Public routes

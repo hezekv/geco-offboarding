@@ -2,22 +2,14 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 
 export type ActivityAction =
-  | 'offboarding.created'
-  | 'offboarding.sent'
-  | 'offboarding.archived'
-  | 'offboarding.deleted'
-  | 'task.completed'
-  | 'task.reopened'
-  | 'requirement.added'
-  | 'requirement.renamed'
-  | 'requirement.deleted'
-  | 'file.uploaded'
-  | 'file.removed'
+  | 'offboarding.created' | 'offboarding.sent' | 'offboarding.archived' | 'offboarding.deleted'
+  | 'task.completed' | 'task.reopened'
+  | 'requirement.added' | 'requirement.renamed' | 'requirement.deleted'
+  | 'file.uploaded' | 'file.removed'
+  | 'consultant.created' | 'consultant.updated' | 'consultant.status_changed'
+  | 'document.uploaded' | 'document.updated' | 'document.removed'
 
-/**
- * Fire-and-forget audit log.
- * Never blocks the UI; failures are console-only so logging can never break a workflow.
- */
+/** Fire-and-forget audit log. Never blocks the UI; failures are console-only. */
 export function logActivity(
   action: ActivityAction,
   entityType: string,

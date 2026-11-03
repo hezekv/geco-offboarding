@@ -735,6 +735,17 @@ async function handleSend() {
   } else {
     // ✅ AUDIT
     logActivity('offboarding.sent', 'offboarding', offboarding.value.id, { ob_ref: offboarding.value.ob_ref })
+
+    // ✅ PHASE 1: consultant lifecycle → offboarding
+    await supabase
+      .from('consultants')
+      .update({ status: 'offboarding' })
+      .eq('id', offboarding.value.consultant_id)
+    logActivity('consultant.status_changed', 'consultant', offboarding.value.consultant_id, {
+      to: 'offboarding',
+      via: 'offboarding.sent',
+    })
+
     showFeedback('Sent to consultant successfully')
     await fetchData()
   }

@@ -177,8 +177,62 @@ export type Database = {
           },
         ]
       }
+      consultant_documents: {
+        Row: {
+          consultant_id: string
+          created_at: string
+          doc_type: string
+          expires_at: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          issued_at: string | null
+          notes: string | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          consultant_id: string
+          created_at?: string
+          doc_type?: string
+          expires_at?: string | null
+          file_name: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          issued_at?: string | null
+          notes?: string | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          consultant_id?: string
+          created_at?: string
+          doc_type?: string
+          expires_at?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          issued_at?: string | null
+          notes?: string | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultant_documents_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultants: {
         Row: {
+          bench_since: string | null
           client: string | null
           country: string | null
           created_at: string
@@ -189,11 +243,14 @@ export type Database = {
           full_name: string
           id: string
           job_title: string | null
+          offboarded_at: string | null
           project: string | null
+          status: string
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          bench_since?: string | null
           client?: string | null
           country?: string | null
           created_at?: string
@@ -204,11 +261,14 @@ export type Database = {
           full_name: string
           id?: string
           job_title?: string | null
+          offboarded_at?: string | null
           project?: string | null
+          status?: string
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          bench_since?: string | null
           client?: string | null
           country?: string | null
           created_at?: string
@@ -219,7 +279,9 @@ export type Database = {
           full_name?: string
           id?: string
           job_title?: string | null
+          offboarded_at?: string | null
           project?: string | null
+          status?: string
           updated_at?: string
           user_id?: string | null
         }

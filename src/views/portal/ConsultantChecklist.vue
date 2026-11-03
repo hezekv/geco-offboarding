@@ -337,7 +337,7 @@ async function fetchAll() {
   const { data: obs } = await supabase
     .from('offboardings')
     .select(`
-      id, ob_ref, status, last_working_day,
+      id, ob_ref, status, last_working_day, consultant_id,
       consultants:consultant_id (full_name, job_title, client, project),
       hr:assigned_hr_id (full_name, email)
     `)
@@ -409,8 +409,22 @@ async function syncRecordStatus() {
 
   if (next !== record.value.status) {
     const { error } = await supabase.from('offboardings').update({ status: next }).eq('id', record.value.id)
-    if (error) console.error('Error syncing status:', error)
-    else showFeedback(next === 'completed' ? 'All tasks completed — offboarding finalized' : 'Progress saved')
+    if (error) {
+      console.error('Error syncing status:', error)
+    } else {
+      // ✅ PHASE 1 (Step 1.9-C): finalized offboarding → consultant becomes offboarded
+      if (next === 'completed') {
+        await supabase
+          .from('consultants')
+          .update({ status: 'offboarded', offboarded_at: new Date().toISOString() })
+          .eq('id', record.value.consultant_id)
+        logActivity('consultant.status_changed', 'consultant', record.value.consultant_id, {
+          to: 'offboarded',
+          via: 'offboarding.completed',
+        })
+      }
+      showFeedback(next === 'completed' ? 'All tasks completed — offboarding finalized' : 'Progress saved')
+    }
   } else {
     showFeedback(done > 0 ? 'Task updated' : 'Task reopened')
   }

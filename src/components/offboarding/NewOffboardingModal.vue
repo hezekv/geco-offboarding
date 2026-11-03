@@ -146,12 +146,16 @@ async function loadOptions() {
   const { data: cons } = await supabase
     .from('consultants')
     .select(`
-      id, full_name, job_title, client,
+      id, full_name, job_title, client, status,
       offboardings!left (id, status)
     `)
     .order('full_name')
 
   consultants.value = (cons || []).filter((c: any) => {
+    // ✅ PHASE 1 (Step 1.9-D): offboarded consultants are ineligible —
+    // re-hires return through the onboarding workflow (Phase 2)
+    if (c.status === 'offboarded') return false
+
     const hasActive = (c.offboardings || []).some((ob: any) =>
       ['draft', 'sent', 'in_progress'].includes(ob.status)
     )
@@ -198,7 +202,6 @@ async function snapshotConfigs(offboardingId: string) {
       .from('offboarding_requirements')
       .insert({
         offboarding_id: offboardingId,
-        source_config_id: null, // FIX #2: nullable lineage column required by supabase-types.ts
         name: cfg.name,
         description: cfg.description,
         sort_order: cfg.sort_order,
@@ -228,7 +231,8 @@ async function snapshotConfigs(offboardingId: string) {
         const { error: fErr } = await supabase.from('offboarding_files').insert(
           files.map((f: any) => ({
             offboarding_sub_requirement_id: subRow.id,
-            source_file_id: null, // FIX #3: nullable lineage column required by supabase-types.ts
+            // Snapshot files originate from config files → keep lineage
+            source_file_id: f.id,
             storage_path: f.storage_path,
             file_name: f.file_name,
             file_type: f.file_type,
@@ -253,22 +257,26 @@ async function handleCreate() {
   saving.value = true
   try {
     const obRef = await nextObRef()
+
+    // Loosely-typed payload bypasses out-of-sync Insert typing; remove cast once types include ob_ref cleanly
+    const payload: Record<string, any> = {
+      ob_ref: obRef,
+      consultant_id: form.value.consultantId,
+      assigned_hr_id: form.value.hrId,
+      last_working_day: form.value.lastWorkingDay,
+      status: 'draft',
+    }
+
     const { data: ob, error } = await supabase
       .from('offboardings')
-      .insert({
-        ob_ref: obRef,
-        consultant_id: form.value.consultantId,
-        assigned_hr_id: form.value.hrId,
-        last_working_day: form.value.lastWorkingDay,
-        status: 'draft',
-      })
+      .insert(payload as any)
       .select()
       .single()
     if (error) throw error
 
     await snapshotConfigs(ob.id)
 
-    // ✅ AUDIT: record creation
+    // ✅ AUDIT: log record creation (Step 0.4)
     logActivity('offboarding.created', 'offboarding', ob.id, { ob_ref: ob.ob_ref })
 
     emit('saved')

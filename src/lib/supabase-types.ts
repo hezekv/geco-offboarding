@@ -84,6 +84,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "config_files_sub_requirement_id_fkey"
+            columns: ["sub_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "v_config_sub_requirements"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "config_files_uploaded_by_fkey"
             columns: ["uploaded_by"]
             isOneToOne: false
@@ -99,6 +106,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          kind: string
           name: string
           sort_order: number
           updated_at: string
@@ -109,6 +117,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          kind?: string
           name: string
           sort_order?: number
           updated_at?: string
@@ -119,6 +128,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          kind?: string
           name?: string
           sort_order?: number
           updated_at?: string
@@ -547,6 +557,190 @@ export type Database = {
           },
         ]
       }
+      onboarding_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          onboarding_sub_requirement_id: string
+          source_file_id: string | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          onboarding_sub_requirement_id: string
+          source_file_id?: string | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          onboarding_sub_requirement_id?: string
+          source_file_id?: string | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_files_onboarding_sub_requirement_id_fkey"
+            columns: ["onboarding_sub_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_sub_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_files_source_file_id_fkey"
+            columns: ["source_file_id"]
+            isOneToOne: false
+            referencedRelation: "config_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_requirements: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          onboarding_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          onboarding_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          onboarding_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_requirements_onboarding_id_fkey"
+            columns: ["onboarding_id"]
+            isOneToOne: false
+            referencedRelation: "onboardings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_sub_requirements: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          instructions: string | null
+          onboarding_requirement_id: string
+          resource_url: string | null
+          sort_order: number
+          status: string
+          title: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          onboarding_requirement_id: string
+          resource_url?: string | null
+          sort_order?: number
+          status?: string
+          title: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          onboarding_requirement_id?: string
+          resource_url?: string | null
+          sort_order?: number
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_sub_requirements_onboarding_requirement_id_fkey"
+            columns: ["onboarding_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboardings: {
+        Row: {
+          assigned_hr_id: string | null
+          completed_at: string | null
+          consultant_id: string
+          created_at: string
+          day_one_date: string
+          id: string
+          on_ref: string
+          sent_at: string | null
+          sent_by: string | null
+          status: string
+        }
+        Insert: {
+          assigned_hr_id?: string | null
+          completed_at?: string | null
+          consultant_id: string
+          created_at?: string
+          day_one_date: string
+          id?: string
+          on_ref: string
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+        }
+        Update: {
+          assigned_hr_id?: string | null
+          completed_at?: string | null
+          consultant_id?: string
+          created_at?: string
+          day_one_date?: string
+          id?: string
+          on_ref?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboardings_assigned_hr_id_fkey"
+            columns: ["assigned_hr_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboardings_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -608,6 +802,60 @@ export type Database = {
             columns: ["offboarding_id"]
             isOneToOne: false
             referencedRelation: "offboardings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_config_sub_requirements: {
+        Row: {
+          config_requirement_id: string | null
+          created_at: string | null
+          id: string | null
+          instructions: string | null
+          is_disabled: boolean | null
+          requirement_id: string | null
+          resource_url: string | null
+          sort_order: number | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          config_requirement_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          instructions?: string | null
+          is_disabled?: boolean | null
+          requirement_id?: string | null
+          resource_url?: string | null
+          sort_order?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          config_requirement_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          instructions?: string | null
+          is_disabled?: boolean | null
+          requirement_id?: string | null
+          resource_url?: string | null
+          sort_order?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "config_sub_requirements_requirement_id_fkey"
+            columns: ["config_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "config_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "config_sub_requirements_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "config_requirements"
             referencedColumns: ["id"]
           },
         ]

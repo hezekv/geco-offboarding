@@ -41,7 +41,7 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/dashboard' },
       { path: 'dashboard', name: 'dashboard', component: () => import('@/views/Dashboard.vue') },
 
-      // ✅ PHASE 1: Consultants module (replaces placeholder)
+      // Consultants module
       {
         path: 'consultants',
         name: 'consultants',
@@ -57,14 +57,19 @@ const routes: RouteRecordRaw[] = [
       { path: 'contacts', name: 'contacts', component: PlaceholderView },
       { path: 'performance', name: 'performance', component: PlaceholderView },
 
-      // Offboarding Configurations
+      // ✅ Configurations (Separated)
       {
         path: 'offboarding-config',
         name: 'offboarding-config',
         component: () => import('@/views/config/ConfigList.vue'),
       },
+      {
+        path: 'onboarding-config',
+        name: 'onboarding-config',
+        component: () => import('@/views/config/OnboardingConfigList.vue'),
+      },
 
-      // Offboarding Employees
+      // ✅ Offboarding Employees
       {
         path: 'offboarding-employees',
         name: 'offboarding-employees',
@@ -74,6 +79,18 @@ const routes: RouteRecordRaw[] = [
         path: 'offboarding-employees/:id',
         name: 'offboarding-profile',
         component: () => import('@/views/offboarding/OffboardingProfile.vue'),
+      },
+
+      // ✅ PHASE 2: Onboarding Records
+      {
+        path: 'onboarding-records',
+        name: 'onboarding-records',
+        component: () => import('@/views/onboarding/OnboardingList.vue'),
+      },
+      {
+        path: 'onboarding-records/:id',
+        name: 'onboarding-profile',
+        component: () => import('@/views/onboarding/OnboardingProfile.vue'),
       },
     ],
   },
@@ -89,6 +106,12 @@ const routes: RouteRecordRaw[] = [
         path: 'checklist',
         name: 'portal-checklist',
         component: () => import('@/views/portal/ConsultantChecklist.vue'),
+      },
+      // ✅ PHASE 2: Consultant Onboarding Checklist
+      {
+        path: 'onboarding',
+        name: 'portal-onboarding',
+        component: () => import('@/views/portal/ConsultantOnboarding.vue'),
       },
     ],
   },

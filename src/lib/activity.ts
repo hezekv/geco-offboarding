@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 
 export type ActivityAction =
   | 'offboarding.created' | 'offboarding.sent' | 'offboarding.archived' | 'offboarding.deleted'
+  | 'onboarding.created' | 'onboarding.sent' | 'onboarding.archived' | 'onboarding.deleted'
   | 'task.completed' | 'task.reopened'
   | 'requirement.added' | 'requirement.renamed' | 'requirement.deleted'
   | 'file.uploaded' | 'file.removed'

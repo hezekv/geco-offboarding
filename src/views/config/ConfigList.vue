@@ -42,26 +42,20 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-line">
-          <!-- ===== UNDO BAND ROW (Variant 3) — full requirement deletes ===== -->
+          <!-- UNDO BAND ROW -->
           <tr v-if="undoState && undoState.kind === 'requirement'" class="bg-[#d7e0ea]">
             <td colspan="5" class="p-0">
-              <div
-                role="status"
-                aria-live="polite"
-                class="flex min-h-[56px] flex-wrap items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium text-ink"
-              >
+              <div role="status" aria-live="polite" class="flex min-h-[56px] flex-wrap items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium text-ink">
                 <span class="font-semibold">Item deleted</span>
                 <button type="button" class="font-semibold text-brand hover:underline" @click="undoRestore">(undo)</button>
               </div>
             </td>
           </tr>
-
           <tr v-if="filteredConfigs.length === 0 && !(undoState && undoState.kind === 'requirement')">
             <td colspan="5" class="px-6 py-12 text-center text-ink-3">No configurations found.</td>
           </tr>
-
           <template v-for="config in filteredConfigs" :key="config.id">
-            <!-- ===== COLLAPSED SUMMARY ROW ===== -->
+            <!-- COLLAPSED SUMMARY ROW -->
             <tr v-show="!isExpanded(config.id)" class="transition-colors" :class="isPending(config.id) ? 'bg-[#d7e0ea]' : 'hover:bg-[#d7e0ea]/40'">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-1.5">
@@ -95,24 +89,17 @@
                 </div>
               </td>
             </tr>
-
-            <!-- ===== EXPANDED CHECKLIST PANEL ===== -->
+            <!-- EXPANDED CHECKLIST PANEL -->
             <tr v-if="isExpanded(config.id)" class="bg-white">
               <td colspan="5" class="p-0">
                 <div class="flex flex-col px-8 py-6">
-                  <!-- Header -->
                   <div class="mb-2 flex flex-wrap items-start justify-between gap-5">
                     <div class="min-w-0">
                       <h3 class="text-xl font-bold tracking-[-0.01em] text-ink">{{ config.name }}</h3>
                       <p class="mt-1.5 text-[13px] leading-[1.5] text-ink-3">{{ config.description }}</p>
                     </div>
                     <div class="ml-auto flex flex-wrap items-center gap-2.5">
-                      <div
-                        v-if="isPending(config.id)"
-                        role="group"
-                        :aria-label="`Confirm deletion of ${config.name}`"
-                        class="inline-flex items-center gap-3 rounded-lg border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#C24152]"
-                      >
+                      <div v-if="isPending(config.id)" role="group" :aria-label="`Confirm deletion of ${config.name}`" class="inline-flex items-center gap-3 rounded-lg border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#C24152]">
                         <span class="font-semibold">Are you sure?</span>
                         <button type="button" class="font-medium text-[#C24152] hover:underline" @click="confirmReqDelete(config.id)">Yes</button>
                         <button type="button" class="font-medium text-[#C24152] hover:underline" @click="pendingReqDeleteId = null">No</button>
@@ -130,32 +117,16 @@
                       </template>
                     </div>
                   </div>
-
-                  <!-- Meta band -->
                   <div class="my-4 flex items-center gap-2 rounded-xl bg-[#F1F5F9] px-3 py-2.5 text-[13px] font-medium text-[#5A6B7E]">
                     <AppIcon name="i-sliders" class="h-4 w-4 text-ink-3" />
                     {{ config.all_subs.length }} sub-requirement{{ config.all_subs.length === 1 ? '' : 's' }}
                   </div>
-
-                  <!-- Undo band (Variant 3) — sub-requirement deletes -->
-                  <div
-                    v-if="undoState && undoState.kind === 'sub' && undoState.reqId === config.id"
-                    role="status"
-                    aria-live="polite"
-                    class="mb-4 flex items-center justify-center gap-2 rounded-xl bg-[#f4f7fb] px-4 py-3.5 text-[13.5px] text-ink"
-                  >
+                  <div v-if="undoState && undoState.kind === 'sub' && undoState.reqId === config.id" role="status" aria-live="polite" class="mb-4 flex items-center justify-center gap-2 rounded-xl bg-[#f4f7fb] px-4 py-3.5 text-[13.5px] text-ink">
                     <span class="font-semibold">Item deleted</span>
                     <button type="button" class="font-semibold text-brand hover:underline" @click="undoRestore">(undo)</button>
                   </div>
-
-                  <!-- Sub-requirement cards -->
                   <ul class="mb-4 grid gap-4">
-                    <li
-                      v-for="sub in config.all_subs"
-                      :key="sub.id"
-                      class="rounded-2xl border border-[#e6edf3] bg-[#f7fafc] p-6 transition-opacity"
-                    >
-                      <!-- Sub-level delete confirm overlay -->
+                    <li v-for="sub in config.all_subs" :key="sub.id" class="rounded-2xl border border-[#e6edf3] bg-[#f7fafc] p-6 transition-opacity">
                       <div v-if="pendingSubDeleteId === sub.id" class="mb-4 flex justify-end">
                         <div role="group" :aria-label="`Confirm deletion of ${sub.title}`" class="inline-flex items-center gap-3 rounded-lg border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#C24152]">
                           <span class="font-semibold">Are you sure?</span>
@@ -163,50 +134,28 @@
                           <button type="button" class="font-medium text-[#C24152] hover:underline" @click="pendingSubDeleteId = null">No</button>
                         </div>
                       </div>
-
-                      <!-- Card content (dimmed + inert while pending delete) -->
-                      <!-- FIX #5: inert expects Booleanish — use true / undefined -->
-                      <div
-                        :class="isDimmed(config.id, sub.id) ? 'is-dimmed opacity-55 grayscale select-none' : ''"
-                        :inert="isDimmed(config.id, sub.id) ? true : undefined"
-                      >
-                        <!-- Card header -->
+                      <div :class="isDimmed(config.id, sub.id) ? 'is-dimmed opacity-55 grayscale select-none' : ''" :inert="isDimmed(config.id, sub.id) ? true : undefined">
                         <header class="mb-6 flex flex-wrap items-center justify-between gap-4">
                           <h4 class="text-base font-medium" :class="sub.is_disabled ? 'text-ink-4' : 'text-ink'">
                             {{ sub.title }}
                             <span v-if="sub.is_disabled" class="ml-1 inline-flex items-center rounded-full border border-line bg-[#EDF1F5] px-3 py-1 text-xs font-medium text-ink-3">Disabled</span>
                           </h4>
-
-                          <!-- EDIT MODE actions -->
                           <div v-if="editingSubId === sub.id" class="ml-auto flex flex-wrap items-center gap-2.5">
-                            <button
-                              type="button"
-                              :disabled="savingSub"
-                              class="inline-flex items-center gap-2 rounded-lg border border-[#0D5F8F] bg-[#0D5F8F] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:border-[#198754] hover:bg-[#198754] disabled:opacity-50"
-                              @click="saveSubEdit(sub)"
-                            >
+                            <button type="button" :disabled="savingSub" class="inline-flex items-center gap-2 rounded-lg border border-[#0D5F8F] bg-[#0D5F8F] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:border-[#198754] hover:bg-[#198754] disabled:opacity-50" @click="saveSubEdit(sub)">
                               <AppIcon name="i-save" class="h-3.5 w-3.5" /> Save sub-requirement
                             </button>
-                            <button type="button" class="rounded-lg border border-line bg-white px-4 py-2.5 text-[13px] font-semibold text-ink transition-colors hover:bg-[#f2f6fa]" @click="cancelEdit">
-                              Cancel
-                            </button>
-                            <button type="button" disabled class="cursor-not-allowed rounded-lg px-3 py-2.5 text-[13px] font-medium text-ink-4">
-                              Disable
-                            </button>
+                            <button type="button" class="rounded-lg border border-line bg-white px-4 py-2.5 text-[13px] font-semibold text-ink transition-colors hover:bg-[#f2f6fa]" @click="cancelEdit">Cancel</button>
+                            <button type="button" disabled class="cursor-not-allowed rounded-lg px-3 py-2.5 text-[13px] font-medium text-ink-4">Disable</button>
                             <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] font-medium text-ink-4">
                               <AppIcon name="i-trash" class="h-3.5 w-3.5" /> Delete
                             </button>
                           </div>
-
-                          <!-- VIEW MODE actions -->
                           <div v-else class="ml-auto flex flex-wrap items-center gap-2.5">
                             <template v-if="!sub.is_disabled">
                               <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#0D5F8F] bg-transparent px-3.5 py-2.5 text-[13px] font-medium text-[#0D5F8F] transition-colors hover:bg-[#0D5F8F] hover:text-white" @click="startEdit(sub)">
                                 <AppIcon name="i-edit" class="h-3.5 w-3.5" /> Edit sub-requirement
                               </button>
-                              <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#dcb56f] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#b7791f] transition-colors hover:bg-[#b7791f] hover:text-white" @click="toggleSubDisabled(sub)">
-                                Disable
-                              </button>
+                              <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#dcb56f] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#b7791f] transition-colors hover:bg-[#b7791f] hover:text-white" @click="toggleSubDisabled(sub)">Disable</button>
                               <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#dc9797] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#c14b4b] transition-colors hover:bg-[#C24152] hover:text-white" @click="pendingSubDeleteId = sub.id">
                                 <AppIcon name="i-trash" class="h-3.5 w-3.5" /> Delete
                               </button>
@@ -215,17 +164,13 @@
                               <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] font-medium text-ink-4">
                                 <AppIcon name="i-edit" class="h-3.5 w-3.5" /> Edit Sub-requirement
                               </button>
-                              <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#0D5F8F] bg-[#0D5F8F] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-brand-dk" @click="toggleSubDisabled(sub)">
-                                Enable
-                              </button>
+                              <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#0D5F8F] bg-[#0D5F8F] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-brand-dk" @click="toggleSubDisabled(sub)">Enable</button>
                               <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-line bg-white px-3.5 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:bg-[#f2f6fa]" @click="pendingSubDeleteId = sub.id">
                                 <AppIcon name="i-trash" class="h-3.5 w-3.5" /> Delete
                               </button>
                             </template>
                           </div>
                         </header>
-
-                        <!-- Fields: EDIT MODE -->
                         <div v-if="editingSubId === sub.id && editDraft" class="space-y-5">
                           <section>
                             <h5 class="mb-2 text-xs font-medium tracking-[.02em] text-ink-3">Instructions</h5>
@@ -249,7 +194,6 @@
                                   <span class="mt-0.5 block text-[11.5px] text-ink-4">{{ fileKind(file.file_name, file.file_type) }} · {{ formatFileSize(file.file_size) }}</span>
                                 </span>
                                 <button type="button" class="h-8 flex-shrink-0 rounded-lg bg-[#d9e7f2] px-4 text-[12.5px] font-semibold text-brand transition-colors hover:bg-[#c9ddee]" @click="openSigned(file.storage_path)">Open</button>
-                                <!-- FIX #6: coerce v-for index to number -->
                                 <button type="button" aria-label="Remove file" class="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#c9d5e1] text-[#3c5064] transition-colors hover:bg-[#b8c7d6]" @click="dismissEditFile(Number(fIdx))">
                                   <AppIcon name="i-x" class="h-2 w-2" />
                                 </button>
@@ -258,8 +202,6 @@
                             <p v-else class="mt-4 rounded-lg border-[1.5px] border-dashed border-line px-4 py-[18px] text-[13px] text-ink-3">No files uploaded for this sub-requirement</p>
                           </section>
                         </div>
-
-                        <!-- Fields: VIEW MODE -->
                         <div v-else class="space-y-5">
                           <section>
                             <h5 class="mb-2 text-xs font-medium tracking-[.02em] text-ink-3">Instructions</h5>
@@ -297,14 +239,10 @@
                         </div>
                       </div>
                     </li>
-
-                    <!-- Empty state -->
                     <li v-if="config.all_subs.length === 0" class="flex flex-col items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-[#b9c6d2] bg-[#f4f7fb] px-6 py-10 text-center text-ink-3">
                       No sub-requirements yet. Use "Add Sub-requirement" to create the first one.
                     </li>
                   </ul>
-
-                  <!-- Footer toggle -->
                   <button type="button" class="flex items-center gap-3 rounded-xl bg-[#f4f7fb] px-4 py-3.5 text-[13px] font-semibold text-ink transition-colors hover:bg-[#e9eef5]" @click="toggleExpand(config.id)">
                     <AppIcon name="i-chevron-up" class="h-4 w-4" />
                     Hide full details
@@ -316,8 +254,8 @@
         </tbody>
       </table>
     </div>
-
-    <RequirementModal :open="showModal" :edit-id="editId" @close="showModal = false" @saved="handleSaved" />
+    <!-- ✅ PHASE 2: Pass kind="offboarding" to the modal -->
+    <RequirementModal :open="showModal" :edit-id="editId" kind="offboarding" @close="showModal = false" @saved="handleSaved" />
   </div>
 </template>
 
@@ -343,7 +281,6 @@ const savingSub = ref(false)
 const subUploadRefs = new Map<string, HTMLInputElement>()
 const editUploadRefs = new Map<string, HTMLInputElement>()
 
-// --- Undo state (Variant 3) with 3-second auto-commit window ---
 type UndoState = {
   kind: 'sub' | 'requirement'
   reqId: string
@@ -358,9 +295,7 @@ let undoTimer: number | null = null
 const UNDO_WINDOW_MS = 3000
 
 onMounted(fetchConfigs)
-onBeforeUnmount(() => {
-  if (undoState.value) commitUndo()
-})
+onBeforeUnmount(() => { if (undoState.value) commitUndo() })
 
 async function fetchConfigs() {
   const { data, error } = await supabase
@@ -372,6 +307,7 @@ async function fetchConfigs() {
         config_files (id, file_name, file_type, file_size, storage_path)
       )
     `)
+    .eq('kind', 'offboarding') // ✅ PHASE 2: Hardcoded for Offboarding page
     .order('sort_order', { ascending: true })
     .order('sort_order', { ascending: true, referencedTable: 'config_sub_requirements' })
 
@@ -395,7 +331,6 @@ const filteredConfigs = computed(() => {
   })
 })
 
-// --- Expand / Collapse ---
 function isExpanded(id: string) { return expandedIds.value.includes(id) }
 function toggleExpand(id: string) {
   const idx = expandedIds.value.indexOf(id)
@@ -403,18 +338,15 @@ function toggleExpand(id: string) {
   else expandedIds.value.push(id)
 }
 
-// --- Requirement modal (create / edit) ---
 function openCreate() { editId.value = null; showModal.value = true }
 function openEdit(id: string) { editId.value = id; showModal.value = true }
 function handleSaved() { showModal.value = false; editId.value = null; fetchConfigs() }
 
-// --- Requirement delete confirm (Variant 2) ---
 function isPending(id: string) { return pendingReqDeleteId.value === id }
 function isDimmed(reqId: string, subId: string) {
   return pendingReqDeleteId.value === reqId || pendingSubDeleteId.value === subId
 }
 
-// --- Undo window machinery ---
 function clearUndoTimer() {
   if (undoTimer !== null) { window.clearTimeout(undoTimer); undoTimer = null }
 }
@@ -435,87 +367,42 @@ async function closePreviousUndo() {
   if (undoState.value) await commitUndo()
 }
 
-// --- Requirement delete (collapsed row OR expanded panel) ---
 async function confirmReqDelete(id: string) {
   await closePreviousUndo()
-
   const config = configs.value.find((c) => c.id === id)
   if (config) {
     undoState.value = {
       kind: 'requirement',
       reqId: id,
-      snapshot: {
-        name: config.name,
-        description: config.description,
-        is_active: config.is_active,
-        sort_order: config.sort_order,
-        created_by: config.created_by,
-      },
-      subs: (config.all_subs || []).map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        instructions: s.instructions,
-        resource_url: s.resource_url,
-        is_disabled: s.is_disabled,
-        sort_order: s.sort_order,
-        files: (s.config_files || []).map((f: any) => ({
-          storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size,
-        })),
-      })),
-      files: (config.all_subs || []).flatMap((s: any) =>
-        (s.config_files || []).map((f: any) => ({ storage_path: f.storage_path }))
-      ),
+      snapshot: { name: config.name, description: config.description, is_active: config.is_active, sort_order: config.sort_order, created_by: config.created_by },
+      subs: (config.all_subs || []).map((s: any) => ({ id: s.id, title: s.title, instructions: s.instructions, resource_url: s.resource_url, is_disabled: s.is_disabled, sort_order: s.sort_order, files: (s.config_files || []).map((f: any) => ({ storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size })) })),
+      files: (config.all_subs || []).flatMap((s: any) => (s.config_files || []).map((f: any) => ({ storage_path: f.storage_path }))),
     }
   }
-
   const { error } = await supabase.from('config_requirements').delete().eq('id', id)
   pendingReqDeleteId.value = null
-  if (error) {
-    console.error('Error deleting:', error)
-    alert('Failed to delete.')
-    undoState.value = null
-    return
-  }
+  if (error) { console.error('Error deleting:', error); alert('Failed to delete.'); undoState.value = null; return }
   startUndoTimer()
   fetchConfigs()
 }
 
-// --- Sub-requirement delete ---
 async function confirmSubDelete(sub: any, reqId: string) {
   await closePreviousUndo()
-
   undoState.value = {
     kind: 'sub',
     reqId,
     subId: sub.id,
-    snapshot: {
-      title: sub.title,
-      instructions: sub.instructions,
-      resource_url: sub.resource_url,
-      is_disabled: sub.is_disabled,
-      sort_order: sub.sort_order,
-    },
-    files: (sub.config_files || []).map((f: any) => ({
-      storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size,
-    })),
+    snapshot: { title: sub.title, instructions: sub.instructions, resource_url: sub.resource_url, is_disabled: sub.is_disabled, sort_order: sub.sort_order },
+    files: (sub.config_files || []).map((f: any) => ({ storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size })),
   }
-
   const { error } = await supabase.from('config_sub_requirements').delete().eq('id', sub.id)
-  if (error) {
-    console.error('Error deleting sub:', error)
-    alert('Failed to delete sub-requirement.')
-    undoState.value = null
-    pendingSubDeleteId.value = null
-    return
-  }
-
+  if (error) { console.error('Error deleting sub:', error); alert('Failed to delete sub-requirement.'); undoState.value = null; pendingSubDeleteId.value = null; return }
   if (editingSubId.value === sub.id) cancelEdit()
   pendingSubDeleteId.value = null
   startUndoTimer()
   fetchConfigs()
 }
 
-// --- Undo restore (within 3s) ---
 async function undoRestore() {
   const state = undoState.value
   if (!state) return
@@ -536,11 +423,7 @@ async function undoRestore() {
       if (error) throw error
       if (state.files.length) {
         const { error: fErr } = await supabase.from('config_files').insert(
-          state.files.map((f: any) => ({
-            sub_requirement_id: state.subId,
-            storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size,
-            uploaded_by: auth.user?.id,
-          }))
+          state.files.map((f: any) => ({ sub_requirement_id: state.subId, storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size, uploaded_by: auth.user?.id }))
         )
         if (fErr) throw fErr
       }
@@ -552,6 +435,7 @@ async function undoRestore() {
         is_active: state.snapshot.is_active,
         sort_order: state.snapshot.sort_order,
         created_by: state.snapshot.created_by,
+        kind: 'offboarding', // ✅ PHASE 2: Restore as offboarding
       })
       if (error) throw error
       for (const s of state.subs || []) {
@@ -567,11 +451,7 @@ async function undoRestore() {
         if (sErr) throw sErr
         if (s.files?.length) {
           const { error: fErr } = await supabase.from('config_files').insert(
-            s.files.map((f: any) => ({
-              sub_requirement_id: s.id,
-              storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size,
-              uploaded_by: auth.user?.id,
-            }))
+            s.files.map((f: any) => ({ sub_requirement_id: s.id, storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size, uploaded_by: auth.user?.id }))
           )
           if (fErr) throw fErr
         }
@@ -585,14 +465,12 @@ async function undoRestore() {
   }
 }
 
-// --- Sub disable / enable toggle ---
 async function toggleSubDisabled(sub: any) {
   const { error } = await supabase.from('config_sub_requirements').update({ is_disabled: !sub.is_disabled }).eq('id', sub.id)
   if (error) { console.error('Error toggling sub:', error); alert('Failed to update.') }
   else fetchConfigs()
 }
 
-// --- Inline sub edit mode ---
 function startEdit(sub: any) {
   editingSubId.value = sub.id
   editDraft.value = {
@@ -603,38 +481,22 @@ function startEdit(sub: any) {
     uploading: false,
   }
 }
-function cancelEdit() {
-  editingSubId.value = null
-  editDraft.value = null
-}
+function cancelEdit() { editingSubId.value = null; editDraft.value = null }
 
-// Edit-mode upload helpers (function refs keyed by sub id)
-function setEditUploadRef(id: string, el: any) {
-  if (el) editUploadRefs.set(id, el as HTMLInputElement)
-  else editUploadRefs.delete(id)
-}
-function triggerEditUpload(subId: string) {
-  editUploadRefs.get(subId)?.click()
-}
+function setEditUploadRef(id: string, el: any) { if (el) editUploadRefs.set(id, el as HTMLInputElement); else editUploadRefs.delete(id) }
+function triggerEditUpload(subId: string) { editUploadRefs.get(subId)?.click() }
 
 async function saveSubEdit(sub: any) {
   if (!editDraft.value) return
   savingSub.value = true
   try {
-    const { error } = await supabase
-      .from('config_sub_requirements')
-      .update({ instructions: editDraft.value.instructions || null, resource_url: editDraft.value.resourceUrl || null })
-      .eq('id', sub.id)
+    const { error } = await supabase.from('config_sub_requirements').update({ instructions: editDraft.value.instructions || null, resource_url: editDraft.value.resourceUrl || null }).eq('id', sub.id)
     if (error) throw error
 
     const newFiles = editDraft.value.files.filter((f: any) => !f.id)
     if (newFiles.length) {
       const { error: fErr } = await supabase.from('config_files').insert(
-        newFiles.map((f: any) => ({
-          sub_requirement_id: sub.id,
-          storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size,
-          uploaded_by: auth.user?.id,
-        }))
+        newFiles.map((f: any) => ({ sub_requirement_id: sub.id, storage_path: f.storage_path, file_name: f.file_name, file_type: f.file_type, file_size: f.file_size, uploaded_by: auth.user?.id }))
       )
       if (fErr) throw fErr
     }
@@ -651,6 +513,7 @@ async function saveSubEdit(sub: any) {
     savingSub.value = false
   }
 }
+
 async function onEditFilesPicked(e: Event, sub: any) {
   const input = e.target as HTMLInputElement
   if (!input.files?.length || !editDraft.value) return
@@ -675,7 +538,6 @@ function dismissEditFile(idx: number) {
   if (f?.id) editDraft.value.removedFiles.push(f)
 }
 
-// --- View-mode file actions ---
 function setSubUploadRef(id: string, el: any) { if (el) subUploadRefs.set(id, el as HTMLInputElement) }
 function triggerSubUpload(subId: string) { subUploadRefs.get(subId)?.click() }
 async function onSubFilesPicked(e: Event, sub: any) {
@@ -701,10 +563,7 @@ async function openSigned(storagePath: string) {
   const { data, error } = await supabase.storage.from('config-files').createSignedUrl(storagePath, 60)
   if (error || !data?.signedUrl) {
     console.error('Signed URL error:', error)
-    alert(
-      'This file exists in the record but not in Storage (seeded demo rows ship without real files, and objects removed from Storage cannot be previewed).\n\n' +
-      'To fix: open Edit sub-requirement, dismiss this file with the × button, upload a replacement, then Save.'
-    )
+    alert('This file exists in the record but not in Storage.\n\nTo fix: open Edit sub-requirement, dismiss this file with the × button, upload a replacement, then Save.')
     return
   }
   window.open(data.signedUrl, '_blank')

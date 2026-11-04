@@ -69,14 +69,12 @@
             <h3 class="mb-4 text-[18px] font-semibold leading-[1.3] text-ink">
               Sub-requirement details, number {{ i + 1 }}
             </h3>
-
             <label class="mb-5 block">
               <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Sub-requirement Name</span>
               <input v-model="sub.name" type="text" :class="fieldCls" placeholder="e.g., Final Timesheet Approval" />
             </label>
-
             <label class="mb-5 block">
-              <span class="mb-2 block text-xs font-medium tracking-[..2px] text-ink-3">Instructions</span>
+              <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Instructions</span>
               <textarea
                 v-model="sub.instructions"
                 :class="fieldCls"
@@ -84,7 +82,6 @@
                 class="min-h-[96px] resize-y leading-[1.5]"
               ></textarea>
             </label>
-
             <label class="mb-5 block">
               <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Resource URL</span>
               <input
@@ -98,7 +95,6 @@
             <!-- Files -->
             <div class="mb-5">
               <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Files to Send Consultant</span>
-
               <!-- Uploaded file chips -->
               <ul v-if="sub.files.length" class="mb-3 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-3">
                 <li
@@ -111,7 +107,6 @@
                     <span class="block truncate text-[13px] font-medium leading-[1.3] text-ink">
                       {{ file.file_name }}
                     </span>
-                    <!-- UPDATED: short kind via fileKind() -->
                     <span class="mt-0.5 block text-xs leading-[1.3] text-ink-3">
                       {{ fileKind(file.file_name, file.file_type) }} · {{ formatFileSize(file.file_size) }}
                     </span>
@@ -134,7 +129,7 @@
                 </li>
               </ul>
 
-              <!-- Dropzone (Upload button inside, per design) -->
+              <!-- Dropzone -->
               <div
                 class="grid cursor-pointer justify-items-center gap-2.5 rounded-xl border-[1.5px] border-dashed border-[#c6d3e0] bg-[#f8fafc] px-4 py-[26px] text-center transition-colors hover:border-brand hover:bg-[#f2f6fa]"
                 @click="triggerUpload(sub)"
@@ -211,10 +206,14 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
-// UPDATED: import fileKind
 import { formatFileSize, fileKind } from '@/lib/utils'
 
-const props = defineProps<{ open: boolean; editId?: string | null }>()
+// ✅ PHASE 2: Added optional 'kind' prop
+const props = defineProps<{ 
+  open: boolean; 
+  editId?: string | null; 
+  kind?: 'offboarding' | 'onboarding' 
+}>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved'): void }>()
 
 const auth = useAuthStore()
@@ -246,9 +245,11 @@ function newSub() {
     uploading: false,
   }
 }
+
 function setUploadRef(key: number, el: any) {
   if (el) uploadRefs.set(key, el as HTMLInputElement)
 }
+
 function triggerUpload(sub: any) {
   uploadRefs.get(sub.key)?.click()
 }
@@ -317,6 +318,7 @@ function onEsc(e: KeyboardEvent) {
 function addSub() {
   subReqs.value.push(newSub())
 }
+
 function removeSub() {
   if (subReqs.value.length <= 1) return
   const popped = subReqs.value.pop()
@@ -331,14 +333,17 @@ function dismissFile(sub: any, idx: number) {
   const [file] = sub.files.splice(idx, 1)
   if (file) removedFiles.value.push(file)
 }
+
 async function onFilesPicked(e: Event, sub: any) {
   const input = e.target as HTMLInputElement
   if (input.files?.length) await uploadFiles(sub, Array.from(input.files))
   input.value = ''
 }
+
 async function onDrop(e: DragEvent, sub: any) {
   if (e.dataTransfer?.files?.length) await uploadFiles(sub, Array.from(e.dataTransfer.files))
 }
+
 async function uploadFiles(sub: any, files: File[]) {
   sub.uploading = true
   try {
@@ -356,6 +361,7 @@ async function uploadFiles(sub: any, files: File[]) {
     sub.uploading = false
   }
 }
+
 async function openFile(storagePath: string) {
   const { data, error } = await supabase.storage.from('config-files').createSignedUrl(storagePath, 60)
   if (error || !data?.signedUrl) {
@@ -389,6 +395,7 @@ async function save() {
           description: form.value.description || null,
           is_active: true,
           created_by: auth.user?.id,
+          kind: props.kind || 'offboarding', // ✅ PHASE 2: Use the passed kind prop
         })
         .select()
         .single()

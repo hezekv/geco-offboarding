@@ -12,7 +12,6 @@
             <div class="text-[11px] leading-tight text-ink-3">Consultant Offboarding Portal</div>
           </div>
         </div>
-
         <div class="flex items-center gap-3">
           <div class="text-right">
             <div class="text-[13px] font-semibold leading-tight text-ink">{{ auth.fullName }}</div>
@@ -32,6 +31,26 @@
         </div>
       </div>
     </header>
+
+    <!-- ✅ PHASE 2 PATCH: Portal Tabs -->
+    <nav class="mx-auto w-full max-w-5xl px-6">
+      <div class="flex gap-1 border-b border-[#e2e8f0]">
+        <router-link
+          to="/portal/checklist"
+          class="border-b-2 px-4 py-2.5 text-[13.5px] font-semibold transition-colors"
+          :class="$route.path === '/portal/checklist' ? 'border-[#0D5F8F] text-[#0D5F8F]' : 'border-transparent text-[#64758b] hover:text-ink'"
+        >
+          My Offboarding
+        </router-link>
+        <router-link
+          to="/portal/onboarding"
+          class="border-b-2 px-4 py-2.5 text-[13.5px] font-semibold transition-colors"
+          :class="$route.path === '/portal/onboarding' ? 'border-[#0D5F8F] text-[#0D5F8F]' : 'border-transparent text-[#64758b] hover:text-ink'"
+        >
+          My Onboarding
+        </router-link>
+      </div>
+    </nav>
 
     <!-- Content -->
     <main class="mx-auto w-full max-w-5xl flex-1 px-6 py-8">

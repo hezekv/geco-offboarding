@@ -73,7 +73,7 @@
           <!-- Snapshot note -->
           <p class="mt-6 rounded-[10px] border border-line bg-[#f7fafc] px-4 py-3 text-[13px] leading-relaxed text-ink-3">
             On create, every active checklist from
-            <strong class="font-semibold text-ink-2">Offboarding Configurations</strong>
+            <strong class="font-semibold text-ink-2">Checklist Configurations → Offboarding</strong>
             is snapshotted into this record — sub-requirements, instructions, resource links and attached files included.
           </p>
 
@@ -152,8 +152,7 @@ async function loadOptions() {
     .order('full_name')
 
   consultants.value = (cons || []).filter((c: any) => {
-    // ✅ PHASE 1 (Step 1.9-D): offboarded consultants are ineligible —
-    // re-hires return through the onboarding workflow (Phase 2)
+    // ✅ PHASE 1 (Step 1.9-D): offboarded consultants are ineligible
     if (c.status === 'offboarded') return false
 
     const hasActive = (c.offboardings || []).some((ob: any) =>
@@ -193,6 +192,7 @@ async function snapshotConfigs(offboardingId: string) {
       )
     `)
     .eq('is_active', true)
+    .eq('kind', 'offboarding') // ✅ PHASE 2: strictly snapshot offboarding templates
     .order('sort_order', { ascending: true })
 
   if (error) throw error
@@ -258,7 +258,7 @@ async function handleCreate() {
   try {
     const obRef = await nextObRef()
 
-    // Loosely-typed payload bypasses out-of-sync Insert typing; remove cast once types include ob_ref cleanly
+    // Loosely-typed payload bypasses out-of-sync Insert typing
     const payload: Record<string, any> = {
       ob_ref: obRef,
       consultant_id: form.value.consultantId,
@@ -276,7 +276,7 @@ async function handleCreate() {
 
     await snapshotConfigs(ob.id)
 
-    // ✅ AUDIT: log record creation (Step 0.4)
+    // ✅ AUDIT: log record creation
     logActivity('offboarding.created', 'offboarding', ob.id, { ob_ref: ob.ob_ref })
 
     emit('saved')

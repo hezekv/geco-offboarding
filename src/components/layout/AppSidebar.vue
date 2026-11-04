@@ -45,7 +45,8 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import type { Component } from 'vue'
-import { BriefcaseBusiness, Users } from 'lucide-vue-next'
+// ✅ UPDATED: Added UserPlus for the new onboarding links
+import { BriefcaseBusiness, Users, UserPlus } from 'lucide-vue-next'
 
 const route = useRoute()
 
@@ -55,13 +56,16 @@ type NavItem = {
   icon: string | Component // string = sprite id, Component = Lucide
 }
 
+// ✅ UPDATED: Added Onboarding Configurations and Onboarding Records
 const navItems: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: 'i-sliders' },
   { label: 'Consultants', to: '/consultants', icon: 'i-badge-check' },
   { label: 'Contacts', to: '/contacts', icon: 'i-edit' },
   { label: 'Performance', to: '/performance', icon: 'i-clock' },
   { label: 'Offboarding Configurations', to: '/offboarding-config', icon: 'i-sliders' },
+  { label: 'Onboarding Configurations', to: '/onboarding-config', icon: UserPlus }, // ✅ NEW
   { label: 'Offboarding Employees', to: '/offboarding-employees', icon: Users },
+  { label: 'Onboarding Records', to: '/onboarding-records', icon: UserPlus }, // ✅ NEW
 ]
 
 function isActive(path: string) {

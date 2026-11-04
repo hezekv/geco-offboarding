@@ -1,6 +1,24 @@
 // src/lib/utils.ts
 
 /**
+ * Utility to join class names conditionally.
+ * Handles strings, objects, and arrays without needing external libraries like clsx.
+ */
+export function cn(...inputs: any[]) {
+  return inputs
+    .filter(Boolean)
+    .map((input) => {
+      if (typeof input === 'string') return input;
+      if (typeof input === 'object' && input !== null) {
+        return Object.keys(input).filter((key) => input[key]).join(' ');
+      }
+      return '';
+    })
+    .filter(Boolean)
+    .join(' ');
+}
+
+/**
  * Format a date string into a readable format (e.g., "15 Oct 2026")
  */
 export function formatDate(dateString: string | null | undefined): string {

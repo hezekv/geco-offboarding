@@ -178,7 +178,15 @@ async function save() {
 
     for (let i = 0; i < subReqs.value.length; i++) {
       const s = subReqs.value[i]
-      const payload = { title: s.name.trim() || 'Untitled', instructions: s.instructions || null, resource_url: s.resourceUrl || null, status: s.is_disabled ? 'disabled' : 'pending', sort_order: i }
+      // ✅ FIX 1 & 2: Explicitly cast the status type to satisfy strict TypeScript/Supabase types
+      const payload = { 
+        title: s.name.trim() || 'Untitled', 
+        instructions: s.instructions || null, 
+        resource_url: s.resourceUrl || null, 
+        status: (s.is_disabled ? 'disabled' : 'pending') as 'pending' | 'completed' | 'disabled', 
+        sort_order: i 
+      }
+      
       let subId = s.id
       if (subId) { const { error } = await supabase.from('offboarding_sub_requirements').update(payload).eq('id', subId); if (error) throw error }
       else { const { data, error } = await supabase.from('offboarding_sub_requirements').insert({ ...payload, offboarding_requirement_id: reqId }).select().single(); if (error) throw error; subId = data.id }

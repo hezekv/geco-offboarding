@@ -150,8 +150,8 @@ const navGroups: NavGroup[] = [
 
 // ----- Expand / collapse state (both open by default, like the reference) -----
 const expandedGroups = ref<Record<string, boolean>>({
-  configurations: true,
-  employees: true,
+  configurations: false,
+  employees: false,
 })
 
 function isGroupOpen(key: string) {

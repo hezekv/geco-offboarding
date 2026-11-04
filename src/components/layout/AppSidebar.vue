@@ -1,13 +1,13 @@
 <template>
   <aside class="flex h-screen w-56 flex-shrink-0 flex-col bg-sidebar">
     <!-- Brand Area (no truncate — text wraps per design) -->
-    <div class="mx-3 mt-3 flex items-center gap-3.5 rounded-xl border border-white/14 p-3.5">
+    <div class="mx-5 mt-3 p-3 flex items-center gap-3 border-b border-[#8fa0b3]">
       <div class="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-white text-sidebar">
         <BriefcaseBusiness class="h-6 w-6" />
       </div>
-      <div class="flex min-w-0 flex-col gap-1.5">
+      <div class="flex min-w-0 flex-col gap-1">
         <strong class="text-sm font-bold leading-[1.35] text-white">
-          HR Business Partner Portal
+          HR Business Partner&nbsp;Portal
         </strong>
         <small class="text-xs leading-[1.5] text-sidebar-muted">
           Southeast Asia Operations
@@ -16,7 +16,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="mt-7 flex-1 overflow-y-auto px-3 pb-4" aria-label="Main navigation">
+    <nav class="mt-4 pt-1 px-2 pb-2 flex-1 overflow-y-auto" aria-label="Main navigation">
       <ul class="flex flex-col gap-2">
         <li v-for="item in navItems" :key="item.to">
           <router-link
@@ -29,11 +29,10 @@
           >
             <!-- Hybrid icons: Lucide component OR sprite string -->
             <component
-              v-if="typeof item.icon !== 'string'"
-              :is="item.icon"
-              class="h-5 w-5 flex-shrink-0 opacity-90"
-            />
-            <AppIcon v-else :name="item.icon" class="h-5 w-5 flex-shrink-0 opacity-90" />
+            v-if="typeof item.icon !== 'string'"
+            :is="item.icon"
+            class="h-5 w-5 flex-shrink-0 opacity-90" />
+            <AppIcon v-else :name="getIconName(item.icon)" class="h-5 w-5 flex-shrink-0 opacity-90" />
             <span class="min-w-0">{{ item.label }}</span>
           </router-link>
         </li>
@@ -65,10 +64,13 @@ const navItems: NavItem[] = [
   { label: 'Offboarding Configurations', to: '/offboarding-config', icon: 'i-sliders' },
   { label: 'Onboarding Configurations', to: '/onboarding-config', icon: UserPlus }, // ✅ NEW
   { label: 'Offboarding Employees', to: '/offboarding-employees', icon: Users },
-  { label: 'Onboarding Records', to: '/onboarding-records', icon: UserPlus }, // ✅ NEW
+  { label: 'Onboarding Employees', to: '/onboarding-records', icon: UserPlus }, // ✅ NEW
 ]
 
 function isActive(path: string) {
   return route.path === path || route.path.startsWith(path + '/')
+}
+function getIconName(icon: string | Component): string {
+  return typeof icon === 'string' ? icon : ''
 }
 </script>

@@ -108,9 +108,17 @@
             <p v-if="req.description" class="mt-1.5 max-w-[70ch] text-sm leading-relaxed text-[#64758b]">{{ req.description }}</p>
           </div>
           <div v-if="!isLocked" class="ml-auto flex flex-wrap gap-2.5">
-            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#0D5F8F] transition-colors hover:bg-[#0D5F8F] hover:text-white" @click="handleReqEdit(req)">Edit <AppIcon name="i-edit" class="h-3.5 w-3.5" /></button>
-            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#c14b4b] transition-colors hover:bg-[#C24152] hover:text-white" @click="handleReqDelete(req)">Delete <AppIcon name="i-trash" class="h-3.5 w-3.5" /></button>
-            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-[#0D5F8F] px-3.5 py-2.5 text-[13px] font-medium text-white transition-colors hover:border-[#198754] hover:bg-[#198754]" @click="handleAddSub(req)">Add Task <AppIcon name="i-plus" class="h-3.5 w-3.5" /></button>
+            <!-- ✅ UPDATED: Edit Button triggers Modal -->
+            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#0D5F8F] transition-colors hover:bg-[#0D5F8F] hover:text-white" @click="openReqEdit(req)">
+              Edit <AppIcon name="i-edit" class="h-3.5 w-3.5" />
+            </button>
+            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#c14b4b] transition-colors hover:bg-[#C24152] hover:text-white" @click="handleReqDelete(req)">
+              Delete <AppIcon name="i-trash" class="h-3.5 w-3.5" />
+            </button>
+            <!-- ✅ UPDATED: Add Task Button triggers Modal -->
+            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-[#0D5F8F] px-3.5 py-2.5 text-[13px] font-medium text-white transition-colors hover:border-[#198754] hover:bg-[#198754]" @click="openReqAddSub(req)">
+              Add Task <AppIcon name="i-plus" class="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
         <button type="button" class="mt-4 flex w-full items-center justify-between gap-3 rounded-lg bg-[#f4f8fb] px-3.5 py-[11px] text-left transition-colors hover:bg-[#e9eef5]" :aria-expanded="expandedRequirements.has(req.id)" @click="toggleRequirement(req.id)">
@@ -184,6 +192,15 @@
     <div v-if="feedbackMessage" role="status" aria-live="polite" class="fixed bottom-6 right-6 z-40 rounded-[10px] bg-ink px-4 py-3 text-sm font-medium text-white shadow-lg">
       {{ feedbackMessage }}
     </div>
+
+    <!-- ✅ NEW: Onboarding Requirement Modal -->
+    <OnboardingRequirementModal 
+      :open="showReqModal" 
+      :edit-id="editingReqId" 
+      :onboarding-id="onboardingId" 
+      @close="showReqModal = false" 
+      @saved="handleReqSaved" 
+    />
   </div>
 </template>
 
@@ -195,6 +212,7 @@ import { useAuthStore } from '@/stores/auth'
 import { formatDate, formatFileSize, fileKind } from '@/lib/utils'
 import { Archive } from 'lucide-vue-next'
 import { logActivity } from '@/lib/activity'
+import OnboardingRequirementModal from '@/components/onboarding/OnboardingRequirementModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -205,6 +223,11 @@ const requirements = ref<any[]>([])
 const loading = ref(true)
 const expandedRequirements = ref<Set<string>>(new Set())
 const feedbackMessage = ref('')
+
+// ✅ NEW: Modal state
+const showReqModal = ref(false)
+const editingReqId = ref<string | null>(null)
+const onboardingId = computed(() => route.params.id as string)
 
 const badgeBase = 'inline-flex items-center whitespace-nowrap rounded-pill px-2.5 py-1 text-xs font-medium leading-tight'
 
@@ -361,13 +384,21 @@ async function setSubStatus(sub: any, status: 'pending' | 'completed') {
   await fetchData()
 }
 
-async function handleReqEdit(req: any) {
-  const name = window.prompt('Rename requirement', req.name)
-  if (!name || !name.trim() || name.trim() === req.name) return
-  const { error } = await supabase.from('onboarding_requirements').update({ name: name.trim() }).eq('id', req.id)
-  if (error) { console.error(error); showFeedback('Failed to rename requirement'); return }
-  logActivity('requirement.renamed', 'onboarding_requirement', req.id, { old_name: req.name, new_name: name.trim() })
-  showFeedback('Requirement updated'); await fetchData()
+// ✅ UPDATED: Modal triggers
+function openReqEdit(req: any) {
+  editingReqId.value = req.id
+  showReqModal.value = true
+}
+
+function openReqAddSub(req: any) {
+  editingReqId.value = req.id
+  showReqModal.value = true
+}
+
+function handleReqSaved() {
+  showReqModal.value = false
+  editingReqId.value = null
+  fetchData()
 }
 
 async function handleReqDelete(req: any) {
@@ -386,18 +417,6 @@ async function handleReqDelete(req: any) {
     logActivity('requirement.deleted', 'onboarding_requirement', reqId, { name: req.name })
     showFeedback('Requirement deleted'); await fetchData()
   } catch (err: any) { console.error(err); showFeedback(`Failed to delete: ${err.message || 'Unknown error'}`) }
-}
-
-async function handleAddSub(req: any) {
-  const title = window.prompt('New task title')
-  if (!title || !title.trim()) return
-  const nextOrder = (req.onboarding_sub_requirements || []).length
-  const { error } = await supabase.from('onboarding_sub_requirements').insert({
-    onboarding_requirement_id: req.id, title: title.trim(), status: 'pending', sort_order: nextOrder,
-  })
-  if (error) { console.error(error); showFeedback('Failed to add task'); return }
-  logActivity('requirement.added', 'onboarding_requirement', req.id, { sub_title: title.trim() })
-  expandedRequirements.value.add(req.id); showFeedback('Task added'); await fetchData()
 }
 
 const subUploadRefs = new Map<string, HTMLInputElement>()

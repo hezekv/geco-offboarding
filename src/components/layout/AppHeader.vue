@@ -1,5 +1,5 @@
 <template>
-  <header class="flex items-center justify-between border-b border-[#e2e8f0] bg-white px-8 py-4">
+  <header class="flex items-center justify-between bg-[#f8fafc] px-8 py-4">
     <!-- Left: Page Title -->
     <div>
       <p class="text-xs font-medium text-[#64748b]">HR Business Partner Portal</p>
@@ -66,10 +66,11 @@ const pageTitle = computed(() => {
     'consultant-detail': 'Consultant Profile',
     contacts: 'Contacts',
     performance: 'Performance',
-    'offboarding-config': 'Checklist Configurations',
+    'offboarding-config': 'Offboarding Configurations',
     'offboarding-employees': 'Offboarding Employees',
     'offboarding-profile': 'Offboarding Profile',
-    'onboarding-records': 'Onboarding Records',
+    'onboarding-config': 'Onboarding Configurations',
+    'onboarding-records': 'Onboarding Employees',
     'onboarding-profile': 'Onboarding Profile',
   }
   return titles[route.name as string] || 'Dashboard'

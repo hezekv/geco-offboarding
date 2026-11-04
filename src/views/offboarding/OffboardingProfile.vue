@@ -3,130 +3,65 @@
     <span class="h-4 w-4 animate-spin rounded-full border-2 border-brand border-t-transparent" aria-hidden="true"></span>
     Loading offboarding record...
   </div>
-
-  <div v-else-if="!offboarding" class="rounded-2xl border border-line bg-white p-12 text-center shadow-sm">
+  <div v-else-if="!onboarding" class="rounded-2xl border border-line bg-white p-12 text-center shadow-sm">
     <h2 class="mb-2 text-lg font-semibold text-ink">Record not found</h2>
     <router-link to="/offboarding-employees" class="text-sm font-medium text-brand hover:underline">
       ← Back to offboarding list
     </router-link>
   </div>
-
   <div v-else class="space-y-6">
-    <!-- Back link -->
-    <router-link
-      to="/offboarding-employees"
-      class="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-3 transition-colors hover:text-ink"
-    >
+    <router-link to="/offboarding-employees" class="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-3 transition-colors hover:text-ink">
       <AppIcon name="i-chevron" class="h-3.5 w-3.5 -rotate-90" />
       Back to list
     </router-link>
 
-    <!-- ===== Consultant Info Card ===== -->
     <section class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
       <div class="flex flex-wrap items-start justify-between gap-6">
-        <!-- Identity -->
         <div class="flex items-start gap-[18px]">
           <div class="grid h-[72px] w-[72px] flex-none place-items-center rounded-full bg-brand text-2xl font-semibold tracking-[.02em] text-white">
             {{ consultantInitials }}
           </div>
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-3">
-              <h2 class="text-2xl font-semibold leading-tight text-ink">
-                {{ offboarding.consultants.full_name }}
-              </h2>
-              <span :class="[badgeBase, pillClass(offboarding.status)]">
-                {{ statusLabel(offboarding.status) }}
-              </span>
+              <h2 class="text-2xl font-semibold leading-tight text-ink">{{ onboarding.consultants.full_name }}</h2>
+              <span :class="[badgeBase, pillClass(onboarding.status)]">{{ statusLabel(onboarding.status) }}</span>
             </div>
             <p class="mt-1.5 text-[14.5px] leading-snug text-[#64758b]">
-              {{ offboarding.ob_ref }} · {{ offboarding.consultants.job_title }}
+              {{ onboarding.ob_ref }} · {{ onboarding.consultants.job_title }}
             </p>
             <p class="mt-2 flex items-center gap-[7px] text-sm leading-snug text-[#64758b]">
               <AppIcon name="i-badge-check" class="h-4 w-4 flex-shrink-0" />
-              {{ offboarding.consultants.client }}
+              {{ onboarding.consultants.client || 'No client yet' }}
             </p>
           </div>
         </div>
-
-        <!-- Lifecycle actions -->
         <div class="flex flex-wrap gap-3">
-          <button
-            v-if="canArchive"
-            type="button"
-            class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-[rgba(179,55,63,.45)] bg-white px-[18px] text-[14.5px] font-medium text-[#B3373F] transition-colors hover:bg-[#FDF5F6]"
-            @click="handleArchive"
-          >
-            <Archive class="h-4 w-4" />
-            Archive Offboarding
+          <button v-if="canArchive" type="button" class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-[rgba(179,55,63,.45)] bg-white px-[18px] text-[14.5px] font-medium text-[#B3373F] transition-colors hover:bg-[#FDF5F6]" @click="handleArchive">
+            <Archive class="h-4 w-4" /> Archive Offboarding
           </button>
-          <button
-            v-if="isDraft"
-            type="button"
-            class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-[rgba(13,95,143,.5)] bg-white px-[18px] text-[14.5px] font-medium text-brand transition-colors hover:bg-[#F2F7FA]"
-            @click="handleSaveDraft"
-          >
-            <AppIcon name="i-save" class="h-4 w-4" />
-            Save Draft
+          <button v-if="isDraft" type="button" class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-[rgba(13,95,143,.5)] bg-white px-[18px] text-[14.5px] font-medium text-brand transition-colors hover:bg-[#F2F7FA]" @click="handleSaveDraft">
+            <AppIcon name="i-save" class="h-4 w-4" /> Save Draft
           </button>
-          <button
-            v-if="isDraft"
-            type="button"
-            class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-brand bg-brand px-[18px] text-[14.5px] font-medium text-white transition-colors hover:bg-[#0a4d73]"
-            @click="handleSend"
-          >
-            <AppIcon name="i-send" class="h-4 w-4" />
-            Send to Consultant
+          <button v-if="isDraft" type="button" class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-brand bg-brand px-[18px] text-[14.5px] font-medium text-white transition-colors hover:bg-[#0a4d73]" @click="handleSend">
+            <AppIcon name="i-send" class="h-4 w-4" /> Send to Consultant
           </button>
-          <button
-            v-if="isDraft"
-            type="button"
-            class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-[rgba(179,55,63,.45)] bg-white px-[18px] text-[14.5px] font-medium text-[#B3373F] transition-colors hover:bg-[#FDF5F6]"
-            @click="handleDelete"
-          >
-            <AppIcon name="i-trash" class="h-4 w-4" />
-            Delete
+          <button v-if="isDraft" type="button" class="inline-flex h-11 items-center gap-[9px] rounded-[10px] border border-[rgba(179,55,63,.45)] bg-white px-[18px] text-[14.5px] font-medium text-[#B3373F] transition-colors hover:bg-[#FDF5F6]" @click="handleDelete">
+            <AppIcon name="i-trash" class="h-4 w-4" /> Delete
           </button>
         </div>
       </div>
-
-      <!-- Detail panel -->
       <dl class="mt-[22px] grid grid-cols-1 gap-x-8 gap-y-6 rounded-xl bg-[#EEF4F8] px-7 py-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Contract Group</dt>
-          <dd class="text-[15px] font-semibold text-ink">GECO Asia Ltd</dd>
-        </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Client</dt>
-          <dd class="text-[15px] font-semibold text-ink">{{ offboarding.consultants.client || '—' }}</dd>
-        </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Department</dt>
-          <dd class="text-[15px] font-semibold text-ink">{{ offboarding.consultants.department || '—' }}</dd>
-        </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Country</dt>
-          <dd class="text-[15px] font-semibold text-ink">{{ offboarding.consultants.country || '—' }}</dd>
-        </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Engagement Start</dt>
-          <dd class="text-[15px] font-semibold text-ink">{{ formatDate(offboarding.consultants.engagement_start) }}</dd>
-        </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Engagement End</dt>
-          <dd class="text-[15px] font-semibold text-ink">{{ formatDate(offboarding.consultants.engagement_end) }}</dd>
-        </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Last Working Day</dt>
-          <dd class="text-[15px] font-semibold text-ink">{{ formatDate(offboarding.last_working_day) }}</dd>
-        </div>
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs font-medium text-[#64758b]">Assigned HR Representative</dt>
-          <dd class="text-[15px] font-semibold text-ink">{{ offboarding.hr?.full_name || '—' }}</dd>
-        </div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Contract Group</dt><dd class="text-[15px] font-semibold text-ink">GECO Asia Ltd</dd></div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Client</dt><dd class="text-[15px] font-semibold text-ink">{{ onboarding.consultants.client || '—' }}</dd></div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Department</dt><dd class="text-[15px] font-semibold text-ink">{{ onboarding.consultants.department || '—' }}</dd></div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Country</dt><dd class="text-[15px] font-semibold text-ink">{{ onboarding.consultants.country || '—' }}</dd></div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Engagement Start</dt><dd class="text-[15px] font-semibold text-ink">{{ formatDate(onboarding.consultants.engagement_start) }}</dd></div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Engagement End</dt><dd class="text-[15px] font-semibold text-ink">{{ formatDate(onboarding.consultants.engagement_end) }}</dd></div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Last Working Day</dt><dd class="text-[15px] font-semibold text-ink">{{ formatDate(onboarding.last_working_day) }}</dd></div>
+        <div class="flex flex-col gap-1"><dt class="text-xs font-medium text-[#64758b]">Assigned HR Representative</dt><dd class="text-[15px] font-semibold text-ink">{{ onboarding.hr?.full_name || '—' }}</dd></div>
       </dl>
     </section>
 
-    <!-- ===== Metrics Bar ===== -->
     <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
       <div class="rounded-xl border border-brand bg-brand px-5 pb-5 pt-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
@@ -136,7 +71,6 @@
         <p class="mt-3.5 text-[21px] font-bold leading-none tracking-[-0.01em] text-white">{{ progressPercent }}%</p>
         <p class="mt-1.5 text-xs leading-snug text-white/80">{{ taskCounts.completed }} of {{ taskCounts.active }} active tasks complete</p>
       </div>
-
       <div class="rounded-xl border border-[#e2e8f0] bg-white px-5 pb-5 pt-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
           <span class="text-sm font-medium text-[#3F5265]">Completed requirements</span>
@@ -145,7 +79,6 @@
         <p class="mt-3.5 text-[21px] font-semibold leading-none tracking-[-0.01em] text-[#5C7285]">{{ completedReqsCount }} completed</p>
         <p class="mt-1.5 text-xs leading-snug text-[#93A3B1]">Across {{ requirements.length }} requirement groups</p>
       </div>
-
       <div class="rounded-xl border border-[#e2e8f0] bg-white px-5 pb-5 pt-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
           <span class="text-sm font-medium text-[#3F5265]">Outstanding Tasks</span>
@@ -154,220 +87,114 @@
         <p class="mt-3.5 text-[21px] font-semibold leading-none tracking-[-0.01em] text-[#5C7285]">{{ outstandingTasksCount }} outstanding</p>
         <p class="mt-1.5 text-xs leading-snug text-[#93A3B1]">Pending HR or consultant action</p>
       </div>
-
       <div class="rounded-xl border border-[#e2e8f0] bg-white px-5 pb-5 pt-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
           <span class="text-sm font-medium text-[#3F5265]">Current Lifecycle</span>
           <AppIcon name="i-badge-check" class="mt-px h-[18px] w-[18px] flex-shrink-0 text-[#7D8F9E]" />
         </div>
-        <p class="mt-3.5 text-[21px] font-semibold leading-none tracking-[-0.01em] text-[#5C7285]">{{ statusLabel(offboarding.status) }}</p>
-        <p class="mt-1.5 text-xs leading-snug text-[#93A3B1]">{{ lifecycleHint(offboarding.status) }}</p>
+        <p class="mt-3.5 text-[21px] font-semibold leading-none tracking-[-0.01em] text-[#5C7285]">{{ statusLabel(onboarding.status) }}</p>
+        <p class="mt-1.5 text-xs leading-snug text-[#93A3B1]">{{ lifecycleHint(onboarding.status) }}</p>
       </div>
     </section>
 
-    <!-- ===== Offboarding Checklist ===== -->
     <section class="flex flex-col gap-5">
-      <div
-        v-for="req in requirements"
-        :key="req.id"
-        class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm"
-      >
-        <!-- Requirement header -->
+      <div v-for="req in requirements" :key="req.id" class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2.5">
               <h3 class="text-lg font-semibold leading-tight text-ink">{{ req.name }}</h3>
               <span :class="[badgeBase, reqPill(reqStatus(req))]">{{ reqStatusLabel(reqStatus(req)) }}</span>
             </div>
-            <p v-if="req.description" class="mt-1.5 max-w-[70ch] text-sm leading-relaxed text-[#64758b]">
-              {{ req.description }}
-            </p>
+            <p v-if="req.description" class="mt-1.5 max-w-[70ch] text-sm leading-relaxed text-[#64758b]">{{ req.description }}</p>
           </div>
-
           <div v-if="!isLocked" class="ml-auto flex flex-wrap gap-2.5">
-            <button
-              type="button"
-              class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#0D5F8F] transition-colors hover:bg-[#0D5F8F] hover:text-white"
-              @click="handleReqEdit(req)"
-            >
-              Edit <AppIcon name="i-edit" class="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              class="inline-flex items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#c14b4b] transition-colors hover:bg-[#C24152] hover:text-white"
-              @click="handleReqDelete(req)"
-            >
-              Delete <AppIcon name="i-trash" class="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-[#0D5F8F] px-3.5 py-2.5 text-[13px] font-medium text-white transition-colors hover:border-[#198754] hover:bg-[#198754]"
-              @click="handleAddSub(req)"
-            >
-              Add Sub-requirement <AppIcon name="i-plus" class="h-3.5 w-3.5" />
-            </button>
+            <!-- ✅ UPDATED: Edit Button triggers Modal -->
+            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#0D5F8F] transition-colors hover:bg-[#0D5F8F] hover:text-white" @click="openReqEdit(req)">Edit <AppIcon name="i-edit" class="h-3.5 w-3.5" /></button>
+            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#c14b4b] transition-colors hover:bg-[#C24152] hover:text-white" @click="handleReqDelete(req)">Delete <AppIcon name="i-trash" class="h-3.5 w-3.5" /></button>
+            <!-- ✅ UPDATED: Add Task Button triggers Modal -->
+            <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-[#0D5F8F] px-3.5 py-2.5 text-[13px] font-medium text-white transition-colors hover:border-[#198754] hover:bg-[#198754]" @click="openReqAddSub(req)">Add Task <AppIcon name="i-plus" class="h-3.5 w-3.5" /></button>
           </div>
         </div>
-
-        <!-- Progress strip / expand toggle -->
-        <button
-          type="button"
-          class="mt-4 flex w-full items-center justify-between gap-3 rounded-lg bg-[#f4f8fb] px-3.5 py-[11px] text-left transition-colors hover:bg-[#e9eef5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-          :aria-expanded="expandedRequirements.has(req.id)"
-          @click="toggleRequirement(req.id)"
-        >
+        <button type="button" class="mt-4 flex w-full items-center justify-between gap-3 rounded-lg bg-[#f4f8fb] px-3.5 py-[11px] text-left transition-colors hover:bg-[#e9eef5]" :aria-expanded="expandedRequirements.has(req.id)" @click="toggleRequirement(req.id)">
           <span class="flex items-center gap-[9px] text-[13px] font-medium text-[#243447]">
             <AppIcon name="i-sliders" class="h-4 w-4 flex-shrink-0 text-[#5b6b7a]" />
             {{ reqProgressText(req) }}
           </span>
           <span class="flex items-center gap-[7px] text-[13px] font-medium text-[#8a99a8]">
-            {{ expandedRequirements.has(req.id) ? 'Hide details' : 'View full details' }}
-            <AppIcon
-              name="i-chevron"
-              class="h-4 w-4 flex-shrink-0 transition-transform duration-200"
-              :class="expandedRequirements.has(req.id) ? '-rotate-90' : 'rotate-90'"
-            />
+            {{ expandedRequirements.has(req.id) ? 'Hide tasks' : 'View tasks' }}
+            <AppIcon name="i-chevron" class="h-4 w-4 flex-shrink-0 transition-transform duration-200" :class="expandedRequirements.has(req.id) ? '-rotate-90' : 'rotate-90'" />
           </span>
         </button>
-
-        <!-- Sub-requirements -->
         <div v-show="expandedRequirements.has(req.id)" class="mt-4 flex flex-col gap-4">
-          <div
-            v-for="sub in req.offboarding_sub_requirements"
-            :key="sub.id"
-            class="rounded-xl border border-[#e6edf3] bg-[#EEF4F8] p-5"
-          >
-            <!-- Sub header -->
+          <div v-for="sub in req.offboarding_sub_requirements" :key="sub.id" class="rounded-xl border border-[#e6edf3] bg-[#EEF4F8] p-5">
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div class="flex flex-wrap items-center gap-2.5">
                 <h4 class="text-base font-semibold text-ink">{{ sub.title }}</h4>
                 <span :class="[badgeBase, subPill(sub.status)]">{{ subLabel(sub.status) }}</span>
               </div>
-
               <div v-if="!isLocked && sub.status !== 'disabled'" class="ml-auto flex flex-wrap gap-2.5">
-                <button
-                  type="button"
-                  class="inline-flex h-9 items-center gap-[7px] rounded-[9px] border px-3.5 text-[13.5px] font-semibold transition-colors"
-                  :class="sub.status === 'pending'
-                    ? 'border-[#b7791f] bg-[#b7791f] text-white hover:bg-[#97641a]'
-                    : 'border-[#d5dee7] bg-white text-[#5c7285] hover:bg-[#f4f8fb]'"
-                  @click="setSubStatus(sub, 'pending')"
-                >
+                <button type="button" class="inline-flex h-9 items-center gap-[7px] rounded-[9px] border px-3.5 text-[13.5px] font-semibold transition-colors" :class="sub.status === 'pending' ? 'border-[#b7791f] bg-[#b7791f] text-white hover:bg-[#97641a]' : 'border-[#d5dee7] bg-white text-[#5c7285] hover:bg-[#f4f8fb]'" @click="setSubStatus(sub, 'pending')">
                   Pending <AppIcon name="i-undo" class="h-[15px] w-[15px]" />
                 </button>
-                <button
-                  type="button"
-                  class="inline-flex h-9 items-center gap-[7px] rounded-[9px] border px-3.5 text-[13.5px] font-semibold transition-colors"
-                  :class="sub.status === 'completed'
-                    ? 'border-[#198754] bg-[#198754] text-white hover:bg-[#146c43]'
-                    : 'border-[#d5dee7] bg-white text-[#5c7285] hover:bg-[#f4f8fb]'"
-                  @click="setSubStatus(sub, 'completed')"
-                >
+                <button type="button" class="inline-flex h-9 items-center gap-[7px] rounded-[9px] border px-3.5 text-[13.5px] font-semibold transition-colors" :class="sub.status === 'completed' ? 'border-[#198754] bg-[#198754] text-white hover:bg-[#146c43]' : 'border-[#d5dee7] bg-white text-[#5c7285] hover:bg-[#f4f8fb]'" @click="setSubStatus(sub, 'completed')">
                   Mark Complete <AppIcon name="i-check-circle" class="h-[15px] w-[15px]" />
                 </button>
               </div>
             </div>
-
-            <!-- Field blocks -->
             <div class="mt-4 flex flex-col gap-3.5">
               <div>
                 <span class="mb-1.5 block text-xs font-semibold text-[#64758b]">Instructions</span>
-                <p class="rounded-[10px] border border-[#e2e8f0] bg-[#fbfdfe] px-4 py-3 text-sm leading-relaxed text-[#243447]">
-                  {{ sub.instructions || 'No instructions provided' }}
-                </p>
+                <p class="rounded-[10px] border border-[#e2e8f0] bg-[#fbfdfe] px-4 py-3 text-sm leading-relaxed text-[#243447]">{{ sub.instructions || 'No instructions provided' }}</p>
               </div>
-
               <div>
                 <span class="mb-1.5 block text-xs font-semibold text-[#64758b]">Resource Link</span>
                 <p class="rounded-[10px] border border-[#e2e8f0] bg-[#fbfdfe] px-4 py-3 text-sm leading-relaxed">
-                  <a
-                    v-if="sub.resource_url"
-                    :href="sub.resource_url"
-                    target="_blank"
-                    rel="noopener"
-                    class="break-all text-[#1f6f9f] hover:underline"
-                  >{{ sub.resource_url }}</a>
+                  <a v-if="sub.resource_url" :href="sub.resource_url" target="_blank" rel="noopener" class="break-all text-[#1f6f9f] hover:underline">{{ sub.resource_url }}</a>
                   <span v-else class="text-[#8a99a8]">No resource URL configured</span>
                 </p>
               </div>
-
               <div>
                 <span class="mb-1.5 block text-xs font-semibold text-[#64758b]">Attached Resources</span>
-
                 <div v-if="!isLocked" class="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    class="rounded-lg border border-[#d5dee7] bg-white px-3.5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-[#f2f6fa]"
-                    @click="triggerSubUpload(sub.id)"
-                  >
-                    Upload Files
-                  </button>
-                  <input
-                    :ref="(el) => setSubUploadRef(sub.id, el)"
-                    type="file"
-                    multiple
-                    class="hidden"
-                    @change="(e) => onSubFilesPicked(e, sub)"
-                  />
+                  <button type="button" class="rounded-lg border border-[#d5dee7] bg-white px-3.5 py-2.5 text-[13px] font-medium text-ink transition-colors hover:bg-[#f2f6fa]" @click="triggerSubUpload(sub.id)">Upload Files</button>
+                  <input :ref="(el) => setSubUploadRef(sub.id, el)" type="file" multiple class="hidden" @change="(e) => onSubFilesPicked(e, sub)" />
                 </div>
-
                 <ul v-if="sub.offboarding_files?.length" class="mt-3 grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3.5">
-                  <li
-                    v-for="file in sub.offboarding_files"
-                    :key="file.id"
-                    class="relative flex items-center gap-2.5 rounded-[9px] border border-[#e2e8f0] bg-white p-3"
-                  >
+                  <li v-for="file in sub.offboarding_files" :key="file.id" class="relative flex items-center gap-2.5 rounded-[9px] border border-[#e2e8f0] bg-white p-3">
                     <AppIcon name="i-file" class="h-5 w-5 flex-shrink-0 text-[#8a99a8]" />
                     <span class="min-w-0 flex-1">
                       <span class="block truncate text-[13.5px] font-semibold text-[#243447]">{{ file.file_name }}</span>
-                      <span class="mt-0.5 block text-xs text-[#8a99a8]">
-                        {{ fileKind(file.file_name, file.file_type) }} · {{ formatFileSize(file.file_size) }}
-                      </span>
+                      <span class="mt-0.5 block text-xs text-[#8a99a8]">{{ fileKind(file.file_name, file.file_type) }} · {{ formatFileSize(file.file_size) }}</span>
                     </span>
-                    <button
-                      type="button"
-                      class="h-8 flex-shrink-0 rounded-lg bg-[#dce9f2] px-3.5 text-[13px] font-semibold text-[#23415a] transition-colors hover:bg-[#cddfeb]"
-                      @click="openFile(file.storage_path)"
-                    >
-                      Open
-                    </button>
-                    <button
-                      v-if="!isLocked"
-                      type="button"
-                      aria-label="Remove file"
-                      class="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#cdd7de] text-[#3f4a55] transition-colors hover:bg-[#b9c6cf]"
-                      @click="handleRemoveFile(file)"
-                    >
+                    <button type="button" class="h-8 flex-shrink-0 rounded-lg bg-[#dce9f2] px-3.5 text-[13px] font-semibold text-[#23415a] transition-colors hover:bg-[#cddfeb]" @click="openFile(file.storage_path)">Open</button>
+                    <button v-if="!isLocked" type="button" aria-label="Remove file" class="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-[#cdd7de] text-[#3f4a55] transition-colors hover:bg-[#b9c6cf]" @click="handleRemoveFile(file)">
                       <AppIcon name="i-x" class="h-2.5 w-2.5" />
                     </button>
                   </li>
                 </ul>
-                <p v-else class="mt-3 rounded-[10px] border-[1.5px] border-dashed border-[#d5dee7] px-4 py-[18px] text-[13px] text-[#8a99a8]">
-                  No files uploaded for this sub-requirement
-                </p>
+                <p v-else class="mt-3 rounded-[10px] border-[1.5px] border-dashed border-[#d5dee7] px-4 py-[18px] text-[13px] text-[#8a99a8]">No files uploaded for this task</p>
               </div>
             </div>
           </div>
-
-          <p
-            v-if="!req.offboarding_sub_requirements?.length"
-            class="rounded-xl border-[1.5px] border-dashed border-[#b9c6d2] bg-[#f4f8fb] px-5 py-[18px] text-sm text-[#64758b]"
-          >
-            No sub-requirements yet. Use "Add Sub-requirement" to create the first one.
+          <p v-if="!req.offboarding_sub_requirements?.length" class="rounded-xl border-[1.5px] border-dashed border-[#b9c6d2] bg-[#f4f8fb] px-5 py-[18px] text-sm text-[#64758b]">
+            No tasks yet. Use "Add Task" to create the first one.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- Feedback toast -->
-    <div
-      v-if="feedbackMessage"
-      role="status"
-      aria-live="polite"
-      class="fixed bottom-6 right-6 z-40 rounded-[10px] bg-ink px-4 py-3 text-sm font-medium text-white shadow-lg"
-    >
+    <div v-if="feedbackMessage" role="status" aria-live="polite" class="fixed bottom-6 right-6 z-40 rounded-[10px] bg-ink px-4 py-3 text-sm font-medium text-white shadow-lg">
       {{ feedbackMessage }}
     </div>
+
+    <!-- ✅ NEW: Offboarding Requirement Modal -->
+    <OffboardingRequirementModal 
+      :open="showReqModal" 
+      :edit-id="editingReqId" 
+      :offboarding-id="offboardingId" 
+      @close="showReqModal = false" 
+      @saved="handleReqSaved" 
+    />
   </div>
 </template>
 
@@ -379,18 +206,23 @@ import { useAuthStore } from '@/stores/auth'
 import { formatDate, formatFileSize, fileKind } from '@/lib/utils'
 import { Archive } from 'lucide-vue-next'
 import { logActivity } from '@/lib/activity'
+import OffboardingRequirementModal from '@/components/offboarding/OffboardingRequirementModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
-const offboarding = ref<any>(null)
+const onboarding = ref<any>(null)
 const requirements = ref<any[]>([])
 const loading = ref(true)
 const expandedRequirements = ref<Set<string>>(new Set())
 const feedbackMessage = ref('')
 
-// --- Pill helpers (shared with Offboarding Employees table) ---
+// ✅ NEW: Modal state
+const showReqModal = ref(false)
+const editingReqId = ref<string | null>(null)
+const offboardingId = computed(() => route.params.id as string)
+
 const badgeBase = 'inline-flex items-center whitespace-nowrap rounded-pill px-2.5 py-1 text-xs font-medium leading-tight'
 
 function pillClass(status: string) {
@@ -403,9 +235,7 @@ function pillClass(status: string) {
   }
 }
 function statusLabel(status: string) {
-  const map: Record<string, string> = {
-    draft: 'Draft', sent: 'Pending', in_progress: 'In Progress', completed: 'Completed', archived: 'Archived',
-  }
+  const map: Record<string, string> = { draft: 'Draft', sent: 'Pending', in_progress: 'In Progress', completed: 'Completed', archived: 'Archived' }
   return map[status] ?? status
 }
 function subPill(status: string) {
@@ -446,36 +276,26 @@ function lifecycleHint(status: string) {
   const map: Record<string, string> = {
     draft: 'Awaiting first send to consultant',
     sent: 'Sent to consultant, tasks pending',
-    in_progress: 'Tasks in flight before last working day',
+    in_progress: 'Tasks in flight before Day One',
     completed: 'Locked — read only',
     archived: 'Archived record',
   }
   return map[status] ?? ''
 }
 
-// --- Derived state ---
-const isDraft = computed(() => offboarding.value?.status === 'draft')
-const isLocked = computed(() => ['completed', 'archived'].includes(offboarding.value?.status))
-const canArchive = computed(() => ['sent', 'in_progress'].includes(offboarding.value?.status))
+const isDraft = computed(() => onboarding.value?.status === 'draft')
+const isLocked = computed(() => ['completed', 'archived'].includes(onboarding.value?.status))
+const canArchive = computed(() => ['sent', 'in_progress'].includes(onboarding.value?.status))
 
 const consultantInitials = computed(() =>
-  (offboarding.value?.consultants?.full_name || '')
-    .split(' ')
-    .map((p: string) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  (onboarding.value?.consultants?.full_name || '').split(' ').map((p: string) => p[0]).slice(0, 2).join('').toUpperCase()
 )
 
 const taskCounts = computed(() => {
-  let active = 0
-  let completed = 0
+  let active = 0, completed = 0
   requirements.value.forEach((req) => {
     req.offboarding_sub_requirements?.forEach((sub: any) => {
-      if (sub.status !== 'disabled') {
-        active++
-        if (sub.status === 'completed') completed++
-      }
+      if (sub.status !== 'disabled') { active++; if (sub.status === 'completed') completed++ }
     })
   })
   return { active, completed }
@@ -486,9 +306,7 @@ const progressPercent = computed(() => {
   return active === 0 ? 0 : Math.round((completed / active) * 100)
 })
 
-const completedReqsCount = computed(() =>
-  requirements.value.filter((req) => reqStatus(req) === 'completed').length
-)
+const completedReqsCount = computed(() => requirements.value.filter((req) => reqStatus(req) === 'completed').length)
 
 const outstandingTasksCount = computed(() => {
   let count = 0
@@ -500,7 +318,6 @@ const outstandingTasksCount = computed(() => {
   return count
 })
 
-// --- Data fetching ---
 onMounted(async () => {
   await fetchData()
   if (requirements.value.length > 0) expandedRequirements.value.add(requirements.value[0].id)
@@ -509,7 +326,6 @@ onMounted(async () => {
 async function fetchData() {
   loading.value = true
   const obId = route.params.id as string
-
   const { data: obData, error: obError } = await supabase
     .from('offboardings')
     .select(`
@@ -520,12 +336,8 @@ async function fetchData() {
     .eq('id', obId)
     .single()
 
-  if (obError || !obData) {
-    console.error('Error fetching offboarding:', obError)
-    loading.value = false
-    return
-  }
-  offboarding.value = obData
+  if (obError || !obData) { console.error('Error fetching offboarding:', obError); loading.value = false; return }
+  onboarding.value = obData
 
   const { data: reqsData, error: reqsError } = await supabase
     .from('offboarding_requirements')
@@ -540,16 +352,11 @@ async function fetchData() {
     .order('sort_order', { ascending: true })
     .order('sort_order', { ascending: true, referencedTable: 'offboarding_sub_requirements' })
 
-  if (reqsError) {
-    console.error('Error fetching requirements:', reqsError)
-  } else {
-    requirements.value = reqsData || []
-  }
-
+  if (reqsError) console.error('Error fetching requirements:', reqsError)
+  else requirements.value = reqsData || []
   loading.value = false
 }
 
-// --- Checklist interactions ---
 function toggleRequirement(id: string) {
   if (expandedRequirements.value.has(id)) expandedRequirements.value.delete(id)
   else expandedRequirements.value.add(id)
@@ -565,102 +372,53 @@ async function setSubStatus(sub: any, status: 'pending' | 'completed') {
       completed_by: status === 'completed' ? auth.user?.id : null,
     })
     .eq('id', sub.id)
-
-  if (error) {
-    console.error('Error updating sub-requirement:', error)
-    showFeedback('Failed to update status')
-  } else {
-    // ✅ AUDIT
-    logActivity(status === 'completed' ? 'task.completed' : 'task.reopened', 'sub_requirement', sub.id, { title: sub.title })
-    showFeedback(status === 'completed' ? 'Marked as completed' : 'Marked as pending')
-    await fetchData()
-  }
+  if (error) { console.error(error); showFeedback('Failed to update status'); return }
+  logActivity(status === 'completed' ? 'task.completed' : 'task.reopened', 'offboarding_sub_requirement', sub.id, { title: sub.title })
+  showFeedback(status === 'completed' ? 'Marked as completed' : 'Marked as pending')
+  await fetchData()
 }
 
-async function handleReqEdit(req: any) {
-  const name = window.prompt('Rename requirement', req.name)
-  if (!name || !name.trim() || name.trim() === req.name) return
-  const { error } = await supabase.from('offboarding_requirements').update({ name: name.trim() }).eq('id', req.id)
-  if (error) {
-    console.error('Error renaming requirement:', error)
-    showFeedback('Failed to rename requirement')
-  } else {
-    // ✅ AUDIT
-    logActivity('requirement.renamed', 'requirement', req.id, { old_name: req.name, new_name: name.trim() })
-    showFeedback('Requirement updated')
-    await fetchData()
-  }
+// ✅ UPDATED: Modal triggers
+function openReqEdit(req: any) {
+  editingReqId.value = req.id
+  showReqModal.value = true
+}
+
+function openReqAddSub(req: any) {
+  editingReqId.value = req.id
+  showReqModal.value = true
+}
+
+function handleReqSaved() {
+  showReqModal.value = false
+  editingReqId.value = null
+  fetchData()
 }
 
 async function handleReqDelete(req: any) {
-  if (!confirm(`Delete requirement "${req.name}" and all its sub-requirements from this offboarding?`)) return
-
+  if (!confirm(`Delete requirement "${req.name}" and all its tasks from this offboarding?`)) return
   const reqId = req.id
   const subIds = (req.offboarding_sub_requirements || []).map((s: any) => s.id)
-
   try {
-    // Delete bottom-up so guard triggers can always resolve their parents
     if (subIds.length > 0) {
-      const { error: filesErr } = await supabase
-        .from('offboarding_files')
-        .delete()
-        .in('offboarding_sub_requirement_id', subIds)
+      const { error: filesErr } = await supabase.from('offboarding_files').delete().in('offboarding_sub_requirement_id', subIds)
       if (filesErr) throw filesErr
-    }
-    if (subIds.length > 0) {
-      const { error: subsErr } = await supabase
-        .from('offboarding_sub_requirements')
-        .delete()
-        .in('id', subIds)
+      const { error: subsErr } = await supabase.from('offboarding_sub_requirements').delete().in('id', subIds)
       if (subsErr) throw subsErr
     }
-    const { error: reqErr } = await supabase
-      .from('offboarding_requirements')
-      .delete()
-      .eq('id', reqId)
+    const { error: reqErr } = await supabase.from('offboarding_requirements').delete().eq('id', reqId)
     if (reqErr) throw reqErr
-
-    // ✅ AUDIT
-    logActivity('requirement.deleted', 'requirement', reqId, { name: req.name })
-    showFeedback('Requirement deleted')
-    await fetchData()
-  } catch (err: any) {
-    console.error('Error deleting requirement:', err)
-    showFeedback(`Failed to delete requirement: ${err.message || 'Unknown error'}`)
-  }
+    logActivity('requirement.deleted', 'offboarding_requirement', reqId, { name: req.name })
+    showFeedback('Requirement deleted'); await fetchData()
+  } catch (err: any) { console.error(err); showFeedback(`Failed to delete: ${err.message || 'Unknown error'}`) }
 }
 
-async function handleAddSub(req: any) {
-  const title = window.prompt('New sub-requirement title')
-  if (!title || !title.trim()) return
-  const nextOrder = (req.offboarding_sub_requirements || []).length
-  const { error } = await supabase.from('offboarding_sub_requirements').insert({
-    offboarding_requirement_id: req.id,
-    title: title.trim(),
-    status: 'pending',
-    sort_order: nextOrder,
-  })
-  if (error) {
-    console.error('Error adding sub-requirement:', error)
-    showFeedback('Failed to add sub-requirement')
-  } else {
-    // ✅ AUDIT
-    logActivity('requirement.added', 'requirement', req.id, { sub_title: title.trim() })
-    expandedRequirements.value.add(req.id)
-    showFeedback('Sub-requirement added')
-    await fetchData()
-  }
-}
-
-// --- File actions (record-level) ---
 const subUploadRefs = new Map<string, HTMLInputElement>()
 function setSubUploadRef(id: string, el: any) {
   if (el) subUploadRefs.set(id, el as HTMLInputElement)
   else subUploadRefs.delete(id)
 }
-function triggerSubUpload(subId: string) {
-  subUploadRefs.get(subId)?.click()
-}
+function triggerSubUpload(subId: string) { subUploadRefs.get(subId)?.click() }
 
 async function onSubFilesPicked(e: Event, sub: any) {
   const input = e.target as HTMLInputElement
@@ -672,169 +430,76 @@ async function onSubFilesPicked(e: Event, sub: any) {
       const { error: upErr } = await supabase.storage.from('config-files').upload(path, f)
       if (upErr) throw upErr
       const { error: dbErr } = await supabase.from('offboarding_files').insert({
-        offboarding_sub_requirement_id: sub.id,
-        source_file_id: null,
-        storage_path: path,
-        file_name: f.name,
-        file_type: f.type,
-        file_size: f.size,
+        offboarding_sub_requirement_id: sub.id, source_file_id: null,
+        storage_path: path, file_name: f.name, file_type: f.type, file_size: f.size,
       })
       if (dbErr) throw dbErr
     }
-    // ✅ AUDIT
-    logActivity('file.uploaded', 'sub_requirement', sub.id, { count })
-    showFeedback('File(s) uploaded')
-    await fetchData()
-  } catch (err) {
-    console.error('Upload error:', err)
-    showFeedback('Failed to upload one or more files')
-  } finally {
-    input.value = ''
-  }
+    logActivity('file.uploaded', 'offboarding_sub_requirement', sub.id, { count })
+    showFeedback('File(s) uploaded'); await fetchData()
+  } catch (err) { console.error(err); showFeedback('Failed to upload one or more files') }
+  finally { input.value = '' }
 }
 
 async function handleRemoveFile(file: any) {
   if (!confirm(`Remove "${file.file_name}" from this offboarding?`)) return
-  // DB row only — the storage object is kept because config snapshots may share it
   const { error } = await supabase.from('offboarding_files').delete().eq('id', file.id)
-  if (error) {
-    console.error('Error removing file:', error)
-    showFeedback('Failed to remove file')
-  } else {
-    // ✅ AUDIT
-    logActivity('file.removed', 'file', file.id, { file_name: file.file_name })
-    showFeedback('File removed')
-    await fetchData()
-  }
+  if (error) { console.error(error); showFeedback('Failed to remove file'); return }
+  logActivity('file.removed', 'offboarding_file', file.id, { file_name: file.file_name })
+  showFeedback('File removed'); await fetchData()
 }
 
 async function openFile(storagePath: string) {
   const { data, error } = await supabase.storage.from('config-files').createSignedUrl(storagePath, 60)
-  if (error || !data?.signedUrl) {
-    console.error('Signed URL error:', error)
-    showFeedback('Failed to open file. Ensure it exists in Storage.')
-    return
-  }
+  if (error || !data?.signedUrl) { console.error(error); showFeedback('Failed to open file.'); return }
   window.open(data.signedUrl, '_blank')
 }
 
-// --- Lifecycle actions ---
 async function handleSend() {
   const { error } = await supabase
     .from('offboardings')
-    .update({
-      status: 'sent',
-      sent_at: new Date().toISOString(),
-      sent_by: auth.user?.id,
-    })
-    .eq('id', offboarding.value.id)
-
-  if (error) {
-    console.error('Error sending:', error)
-    showFeedback('Failed to send offboarding')
-  } else {
-    // ✅ AUDIT
-    logActivity('offboarding.sent', 'offboarding', offboarding.value.id, { ob_ref: offboarding.value.ob_ref })
-
-    // ✅ PHASE 1: consultant lifecycle → offboarding
-    await supabase
-      .from('consultants')
-      .update({ status: 'offboarding' })
-      .eq('id', offboarding.value.consultant_id)
-    logActivity('consultant.status_changed', 'consultant', offboarding.value.consultant_id, {
-      to: 'offboarding',
-      via: 'offboarding.sent',
-    })
-
-    showFeedback('Sent to consultant successfully')
-    await fetchData()
-  }
+    .update({ status: 'sent', sent_at: new Date().toISOString(), sent_by: auth.user?.id })
+    .eq('id', onboarding.value.id)
+  if (error) { console.error(error); showFeedback('Failed to send offboarding'); return }
+  logActivity('offboarding.sent', 'offboarding', onboarding.value.id, { ob_ref: onboarding.value.ob_ref })
+  showFeedback('Sent to consultant successfully'); await fetchData()
 }
 
-function handleSaveDraft() {
-  showFeedback('Offboarding saved as draft')
-}
+function handleSaveDraft() { showFeedback('Offboarding saved as draft') }
 
 async function handleArchive() {
-  const { error } = await supabase.from('offboardings').update({ status: 'archived' }).eq('id', offboarding.value.id)
-  if (error) {
-    console.error('Error archiving:', error)
-    showFeedback('Failed to archive')
-  } else {
-    // ✅ AUDIT
-    logActivity('offboarding.archived', 'offboarding', offboarding.value.id, { ob_ref: offboarding.value.ob_ref })
-    showFeedback('Record archived')
-    router.push('/offboarding-employees')
-  }
+  const { error } = await supabase.from('offboardings').update({ status: 'archived' }).eq('id', onboarding.value.id)
+  if (error) { console.error(error); showFeedback('Failed to archive'); return }
+  logActivity('offboarding.archived', 'offboarding', onboarding.value.id, { ob_ref: onboarding.value.ob_ref })
+  showFeedback('Record archived'); router.push('/offboarding-employees')
 }
 
-// Bottom-up deletion (files → subs → requirements → offboarding) so the
-// child-table guard triggers can always resolve their still-existing parent.
 async function handleDelete() {
   if (!confirm('Are you sure you want to delete this draft? This cannot be undone.')) return
-
-  const obId = offboarding.value.id
-  const obRef = offboarding.value.ob_ref
-
+  const obId = onboarding.value.id
+  const obRef = onboarding.value.ob_ref
   try {
-    // 1) Collect requirement IDs for this offboarding
-    const { data: reqs, error: reqsErr } = await supabase
-      .from('offboarding_requirements')
-      .select('id')
-      .eq('offboarding_id', obId)
+    const { data: reqs, error: reqsErr } = await supabase.from('offboarding_requirements').select('id').eq('offboarding_id', obId)
     if (reqsErr) throw reqsErr
     const reqIds = (reqs || []).map((r: any) => r.id)
-
     if (reqIds.length > 0) {
-      // 2) Collect sub-requirement IDs
-      const { data: subs, error: subsErr } = await supabase
-        .from('offboarding_sub_requirements')
-        .select('id')
-        .in('offboarding_requirement_id', reqIds)
+      const { data: subs, error: subsErr } = await supabase.from('offboarding_sub_requirements').select('id').in('offboarding_requirement_id', reqIds)
       if (subsErr) throw subsErr
       const subIds = (subs || []).map((s: any) => s.id)
-
-      // 3) Delete files first
       if (subIds.length > 0) {
-        const { error: filesErr } = await supabase
-          .from('offboarding_files')
-          .delete()
-          .in('offboarding_sub_requirement_id', subIds)
+        const { error: filesErr } = await supabase.from('offboarding_files').delete().in('offboarding_sub_requirement_id', subIds)
         if (filesErr) throw filesErr
-      }
-
-      // 4) Then sub-requirements
-      if (subIds.length > 0) {
-        const { error: subsDelErr } = await supabase
-          .from('offboarding_sub_requirements')
-          .delete()
-          .in('id', subIds)
+        const { error: subsDelErr } = await supabase.from('offboarding_sub_requirements').delete().in('id', subIds)
         if (subsDelErr) throw subsDelErr
       }
-
-      // 5) Then requirements
-      const { error: reqsDelErr } = await supabase
-        .from('offboarding_requirements')
-        .delete()
-        .in('id', reqIds)
+      const { error: reqsDelErr } = await supabase.from('offboarding_requirements').delete().in('id', reqIds)
       if (reqsDelErr) throw reqsDelErr
     }
-
-    // 6) Finally the offboarding record itself (guard verifies draft status)
-    const { error: obErr } = await supabase
-      .from('offboardings')
-      .delete()
-      .eq('id', obId)
+    const { error: obErr } = await supabase.from('offboardings').delete().eq('id', obId)
     if (obErr) throw obErr
-
-    // ✅ AUDIT (logged after successful delete, using captured ids)
     logActivity('offboarding.deleted', 'offboarding', obId, { ob_ref: obRef })
-    showFeedback('Record deleted')
-    router.push('/offboarding-employees')
-  } catch (err: any) {
-    console.error('Error deleting:', err)
-    showFeedback(`Failed to delete: ${err.message || 'Unknown error'}`)
-  }
+    showFeedback('Record deleted'); router.push('/offboarding-employees')
+  } catch (err: any) { console.error(err); showFeedback(`Failed to delete: ${err.message || 'Unknown error'}`) }
 }
 
 function showFeedback(msg: string) {

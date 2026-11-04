@@ -1,18 +1,19 @@
 <template>
-  <div class="space-y-6">
-    <!-- Page header -->
-    <div class="flex flex-wrap items-center justify-end gap-4">
+  <div class="space-y-8">
+    
+    <!-- Toolbar -->
+    <div class="flex flex-wrap items-center gap-3 rounded-2xl">
+    
+      <div class="relative pr-6">
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-[10px] border border-[#12607A] bg-[#12607A] px-5 py-3 text-sm font-bold text-white transition-colors hover:border-[#198754] hover:bg-[#198754]"
+        class="inline-flex items-center gap-4 rounded-[10px] border border-[#12607A] bg-[#12607A] px-8 py-3 text-sm font-bold text-white transition-colors hover:border-[#198754] hover:bg-[#198754]"
         @click="openCreate"
       >
         Add Consultant <AppIcon name="i-plus" class="h-4 w-4" />
       </button>
     </div>
 
-    <!-- Toolbar -->
-    <div class="flex flex-wrap items-center gap-3 rounded-2xl">
       <!-- Search -->
       <div class="relative min-w-[240px] flex-1">
         <svg
@@ -80,6 +81,7 @@
         <!-- Click-away layer -->
         <div v-if="filterOpen" class="fixed inset-0 z-20" @click="filterOpen = false"></div>
       </div>
+
     </div>
 
     <!-- Table card -->

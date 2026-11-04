@@ -1,19 +1,17 @@
 <template>
   <div class="space-y-5">
-    <!-- Row 1: Right-aligned primary action -->
-    <div class="flex justify-end">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-[10px] border border-[#12607A] bg-[#12607A] px-[18px] py-[11px] text-sm font-semibold text-white transition-colors hover:border-[#198754] hover:bg-[#198754] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-        @click="openCreate"
-      >
-        Add Requirement checklist
-        <AppIcon name="i-plus" class="h-4 w-4" />
-      </button>
-    </div>
+    <div class="flex items-stretch gap-2">
+      <div class="relative flex-shrink-0 pr-8">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-[10px] border border-[#12607A] bg-[#12607A] px-[18px] py-[11px] text-sm font-semibold text-white transition-colors hover:border-[#198754] hover:bg-[#198754] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          @click="openCreate"
+        >
+          Add Requirement checklist
+          <AppIcon name="i-plus" class="h-4 w-4" />
+        </button>
+      </div>
 
-    <!-- Row 2: Full-width search + Filters -->
-    <div class="flex items-stretch gap-3.5">
       <div class="relative flex-1">
         <AppIcon name="i-search" class="pointer-events-none absolute left-[14px] top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
         <input
@@ -23,10 +21,37 @@
           class="h-[46px] w-full rounded-[10px] border border-[#d5dee8] bg-[#f8fafc] pl-[42px] pr-4 text-sm text-ink transition-[border-color,box-shadow,background] duration-150 placeholder:text-[#8a97a8] hover:border-[#b9c8d8] focus:border-[#122033] focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-[rgba(14,116,144,.25)]"
         />
       </div>
-      <button type="button" class="inline-flex h-[46px] flex-shrink-0 items-center gap-[9px] rounded-[10px] border border-[#d5dee8] bg-white px-[18px] text-sm font-semibold text-[#1f2937] shadow-sm transition-colors hover:bg-[#f2f6fa]">
-        <AppIcon name="i-sliders" class="h-4 w-4 text-[#334155]" />
-        Filters
-      </button>
+      
+      <!-- ✅ PHASE 2: Interactive Filters Dropdown -->
+      <div class="relative flex-shrink-0">
+        <button
+          type="button"
+          class="inline-flex h-[46px] items-center gap-[9px] rounded-[10px] border border-[#d5dee8] bg-white px-[18px] text-sm font-semibold text-[#1f2937] shadow-sm transition-colors hover:bg-[#f2f6fa]"
+          :aria-expanded="filterOpen"
+          @click="filterOpen = !filterOpen"
+        >
+          <AppIcon name="i-sliders" class="h-4 w-4 text-[#334155]" />
+          {{ statusFilterLabel }}
+          <AppIcon name="i-chevron" class="h-3.5 w-3.5 text-[#334155] transition-transform duration-150" :class="filterOpen ? '-rotate-90' : 'rotate-90'" />
+        </button>
+        <div
+          v-if="filterOpen"
+          class="absolute right-0 top-[calc(100%+6px)] z-30 w-48 overflow-hidden rounded-[10px] border border-[#d5dee8] bg-white py-1 shadow-md"
+        >
+          <button
+            v-for="opt in statusOptions"
+            :key="opt.value"
+            type="button"
+            class="flex w-full items-center justify-between px-4 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-[#f2f6fa]"
+            :class="statusFilter === opt.value ? 'text-[#0D5F8F] font-semibold' : 'text-ink-2'"
+            @click="selectStatus(opt.value)"
+          >
+            {{ opt.label }}
+            <AppIcon v-if="statusFilter === opt.value" name="i-check-circle" class="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <div v-if="filterOpen" class="fixed inset-0 z-20" @click="filterOpen = false"></div>
+      </div>
     </div>
 
     <!-- Data Table -->
@@ -57,14 +82,42 @@
           <template v-for="config in filteredConfigs" :key="config.id">
             <!-- COLLAPSED SUMMARY ROW -->
             <tr v-show="!isExpanded(config.id)" class="transition-colors" :class="isPending(config.id) ? 'bg-[#d7e0ea]' : 'hover:bg-[#d7e0ea]/40'">
+              
+              <!-- ✅ UPDATED: Name Column with Compact Toggle Switch & Tooltip -->
               <td class="px-6 py-4">
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-2">
                   <button type="button" class="grid h-7 w-7 flex-shrink-0 place-items-center rounded-lg text-ink-3 transition-colors hover:bg-[rgba(18,32,51,.08)] hover:text-ink focus-visible:outline-2 focus-visible:outline-brand" @click="toggleExpand(config.id)" aria-label="Show full details">
                     <AppIcon name="i-chevron" class="h-4 w-4" />
                   </button>
                   <span class="font-semibold" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ config.name }}</span>
+
+                  <!-- Compact Toggle Switch with Tooltip -->
+                  <div class="group relative ml-1">
+                    <!-- Tooltip -->
+                    <div class="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0f172a] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-lg transition-opacity group-hover:block z-20">
+                      {{ config.is_active ? 'Click to make inactive' : 'Click to make active' }}
+                      <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0f172a]"></div>
+                    </div>
+                    
+                    <!-- Toggle Switch (8px height) -->
+                    <button
+                      type="button"
+                      role="switch"
+                      :aria-checked="config.is_active"
+                      :aria-label="`${config.name} status toggle`"
+                      class="relative inline-block h-3 w-5 flex-shrink-0 rounded-full cursor-pointer transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#198754] focus-visible:ring-offset-2"
+                      :class="config.is_active ? 'bg-[#198754]' : 'bg-[#e2e8f0]'"
+                      @click="toggleActive(config)"
+                    >
+                      <span
+                        class="absolute top-0 left-0 h-3 w-3 rounded-full bg-white border border-[#cbd5e1] shadow-sm transition-transform duration-300"
+                        :class="config.is_active ? 'translate-x-2 border-[#198754]' : 'translate-x-0'"
+                      ></span>
+                    </button>
+                  </div>
                 </div>
               </td>
+
               <td class="truncate px-6 py-4 text-ink-3">{{ config.description }}</td>
               <td class="px-6 py-4 font-semibold" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ config.file_count }}</td>
               <td class="px-6 py-4">
@@ -73,6 +126,8 @@
                 </ul>
                 <span v-else class="text-sm text-ink-3">—</span>
               </td>
+              
+              <!-- ✅ UPDATED: Actions Column (Only Edit & Delete) -->
               <td class="px-6 py-4">
                 <div v-if="isPending(config.id)" class="flex flex-wrap items-center gap-2.5">
                   <span class="text-[13px] font-semibold text-[#C0392B]">Are you sure?</span>
@@ -89,13 +144,41 @@
                 </div>
               </td>
             </tr>
+            
             <!-- EXPANDED CHECKLIST PANEL -->
             <tr v-if="isExpanded(config.id)" class="bg-white">
               <td colspan="5" class="p-0">
                 <div class="flex flex-col px-8 py-6">
                   <div class="mb-2 flex flex-wrap items-start justify-between gap-5">
                     <div class="min-w-0">
-                      <h3 class="text-xl font-bold tracking-[-0.01em] text-ink">{{ config.name }}</h3>
+                      <div class="group inline-flex items-center gap-2">
+                        <h3 class="text-xl font-bold tracking-[-0.01em] text-ink">{{ config.name }}</h3>
+                        <!-- ✅ UPDATED: Compact Toggle Switch with Tooltip for Expanded Panel -->
+                        <div class="group relative ml-1">
+                          <!-- Tooltip -->
+                          <div class="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0f172a] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-lg transition-opacity group-hover:block z-20">
+                            {{ config.is_active ? 'Click to make inactive' : 'Click to make active' }}
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0f172a]"></div>
+                          </div>
+                          
+                          <!-- Toggle Switch (8px height) -->
+                          <button
+                            type="button"
+                            role="switch"
+                            :aria-checked="config.is_active"
+                            :aria-label="`${config.name} status toggle`"
+                            class="relative inline-block h-3 w-5 flex-shrink-0 rounded-full cursor-pointer transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#198754] focus-visible:ring-offset-2"
+                            :class="config.is_active ? 'bg-[#198754]' : 'bg-[#e2e8f0]'"
+                            @click="toggleActive(config)"
+                          >
+                            <span
+                              class="absolute top-0 left-0 h-3 w-3 rounded-full bg-white border border-[#cbd5e1] shadow-sm transition-transform duration-300"
+                              :class="config.is_active ? 'translate-x-2 border-[#198754]' : 'translate-x-0'"
+                            ></span>
+                          </button>
+                        </div>
+                      </div>
+
                       <p class="mt-1.5 text-[13px] leading-[1.5] text-ink-3">{{ config.description }}</p>
                     </div>
                     <div class="ml-auto flex flex-wrap items-center gap-2.5">
@@ -114,6 +197,7 @@
                         <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#0D5F8F] bg-[#0D5F8F] px-3.5 py-2.5 text-[13px] font-medium text-white transition-colors hover:border-[#198754] hover:bg-[#198754]" @click="openEdit(config.id)">
                           Add Sub-requirement <AppIcon name="i-plus" class="h-3.5 w-3.5" />
                         </button>
+                        
                       </template>
                     </div>
                   </div>
@@ -281,6 +365,26 @@ const savingSub = ref(false)
 const subUploadRefs = new Map<string, HTMLInputElement>()
 const editUploadRefs = new Map<string, HTMLInputElement>()
 
+// ✅ PHASE 2: Filter state
+const filterOpen = ref(false)
+const statusFilter = ref('')
+
+const statusOptions = [
+  { value: '', label: 'All Statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+]
+
+const statusFilterLabel = computed(() => {
+  if (!statusFilter.value) return 'Filters'
+  return statusOptions.find((o) => o.value === statusFilter.value)?.label ?? 'Filters'
+})
+
+function selectStatus(value: string) {
+  statusFilter.value = value
+  filterOpen.value = false
+}
+
 type UndoState = {
   kind: 'sub' | 'requirement'
   reqId: string
@@ -322,10 +426,17 @@ async function fetchConfigs() {
   })
 }
 
+// ✅ PHASE 2: Updated filtering logic
 const filteredConfigs = computed(() => {
-  if (!search.value) return configs.value
+  let result = configs.value
+  if (statusFilter.value === 'active') {
+    result = result.filter((c) => c.is_active)
+  } else if (statusFilter.value === 'inactive') {
+    result = result.filter((c) => !c.is_active)
+  }
+  if (!search.value) return result
   const term = search.value.toLowerCase()
-  return configs.value.filter((c) => {
+  return result.filter((c) => {
     const inSubs = c.all_subs?.some((s: any) => s.title?.toLowerCase().includes(term))
     return c.name.toLowerCase().includes(term) || c.description?.toLowerCase().includes(term) || inSubs
   })
@@ -469,6 +580,24 @@ async function toggleSubDisabled(sub: any) {
   const { error } = await supabase.from('config_sub_requirements').update({ is_disabled: !sub.is_disabled }).eq('id', sub.id)
   if (error) { console.error('Error toggling sub:', error); alert('Failed to update.') }
   else fetchConfigs()
+}
+
+// --- Requirement Active/Inactive Toggle ---
+async function toggleActive(config: any) {
+  const newStatus = !config.is_active
+  const { error } = await supabase
+    .from('config_requirements')
+    .update({ is_active: newStatus })
+    .eq('id', config.id)
+
+  if (error) {
+    console.error('Error toggling status:', error)
+    alert('Failed to update status.')
+    return
+  }
+  
+  // Optimistic UI update for instant feedback without refetching
+  config.is_active = newStatus
 }
 
 function startEdit(sub: any) {

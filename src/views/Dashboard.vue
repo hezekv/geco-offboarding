@@ -6,12 +6,6 @@
         <h1 class="text-2xl font-bold text-foreground">Welcome back, {{ auth.fullName }}</h1>
         <p class="text-sm text-muted-foreground">Here's what's happening with your offboardings today.</p>
       </div>
-      <router-link
-        to="/offboarding-employees/new"
-        class="inline-flex items-center justify-center text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-full text-sm px-4 py-2.5 focus:outline-none"
-      >
-        <Plus class="mr-2 h-4 w-4" /> New Offboarding
-      </router-link>
     </div>
 
     <!-- Metrics Grid -->
@@ -50,10 +44,10 @@
     <div class="grid gap-6 lg:grid-cols-2">
       <!-- Recent Offboardings -->
       <div class="rounded-xl border bg-white shadow-sm">
-        <div class="border-b px-6 py-4">
+        <div class="px-6 py-4">
           <h2 class="text-lg font-semibold text-foreground">Recent Offboardings</h2>
         </div>
-        <div class="p-6">
+        <div class="p-6 pt-1">
           <div v-if="recentOffboardings.length === 0" class="text-center text-sm text-muted-foreground py-4">
             No recent offboardings
           </div>
@@ -86,10 +80,10 @@
 
       <!-- Quick Actions -->
       <div class="rounded-xl border bg-white shadow-sm">
-        <div class="border-b px-6 py-4">
+        <div class="px-6 py-4">
           <h2 class="text-lg font-semibold text-foreground">Quick Actions</h2>
         </div>
-        <div class="p-6 space-y-3">
+        <div class="p-6 space-y-3 pt-1">
           <router-link
             to="/offboarding-employees"
             class="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/30 transition-colors"
@@ -113,19 +107,6 @@
             <div>
               <div class="font-medium text-foreground">Manage Configurations</div>
               <div class="text-xs text-muted-foreground">Edit requirement templates</div>
-            </div>
-          </router-link>
-
-          <router-link
-            to="/offboarding-employees/new"
-            class="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/30 transition-colors"
-          >
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-              <UserPlus class="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <div class="font-medium text-foreground">Create New Offboarding</div>
-              <div class="text-xs text-muted-foreground">Start a new offboarding process</div>
             </div>
           </router-link>
         </div>

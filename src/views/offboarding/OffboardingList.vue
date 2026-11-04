@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-5">
-    <!-- Row 1: Right-aligned primary action (opens modal) -->
-    <div class="flex justify-end">
+    <div class="flex items-stretch gap-2">
+      <div class="relative flex-shrink-0 pr-8">
       <button
         type="button"
         class="inline-flex items-center gap-2 rounded-[10px] border border-[#12607A] bg-[#12607A] px-5 py-3 text-sm font-bold text-white transition-colors hover:border-[#198754] hover:bg-[#198754] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
@@ -12,8 +12,6 @@
       </button>
     </div>
 
-    <!-- Row 2: Full-width search + Filter Status + Show archived -->
-    <div class="flex items-stretch gap-3.5">
       <div class="relative flex-1">
         <AppIcon name="i-search" class="pointer-events-none absolute left-[14px] top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
         <input
@@ -57,17 +55,7 @@
         </div>
         <div v-if="statusMenuOpen" class="fixed inset-0 z-20" @click="statusMenuOpen = false"></div>
       </div>
-      <!-- Show / hide archived history -->
-      <button
-        type="button"
-        class="inline-flex h-[46px] flex-shrink-0 items-center gap-[9px] rounded-[10px] border border-[#d5dee8] bg-white px-[18px] text-sm font-semibold text-[#1f2937] shadow-sm transition-colors hover:bg-[#f2f6fa] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-        :aria-pressed="showArchived"
-        @click="showArchived = !showArchived"
-      >
-        <Eye v-if="showArchived" class="h-4 w-4 text-[#334155]" />
-        <EyeOff v-else class="h-4 w-4 text-[#334155]" />
-        {{ showArchived ? 'Hide archived' : 'Show archived' }}
-      </button>
+      
     </div>
 
     <!-- ===== Table card ===== -->

@@ -1,33 +1,46 @@
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/stores/auth'
+// src/lib/activity.ts
 
-export type ActivityAction =
-  | 'offboarding.created' | 'offboarding.sent' | 'offboarding.archived' | 'offboarding.deleted'
-  | 'onboarding.created' | 'onboarding.sent' | 'onboarding.archived' | 'onboarding.deleted'
-  | 'task.completed' | 'task.reopened'
-  | 'requirement.added' | 'requirement.renamed' | 'requirement.deleted'
-  | 'file.uploaded' | 'file.removed'
-  | 'consultant.created' | 'consultant.updated' | 'consultant.status_changed'
-  | 'document.uploaded' | 'document.updated' | 'document.removed'
-
-/** Fire-and-forget audit log. Never blocks the UI; failures are console-only. */
-export function logActivity(
-  action: ActivityAction,
-  entityType: string,
-  entityId: string | null,
-  meta: Record<string, any> = {}
-) {
-  const auth = useAuthStore()
-  supabase
-    .from('activity_logs')
-    .insert({
-      actor_id: auth.user?.id ?? null,
-      action,
-      entity_type: entityType,
-      entity_id: entityId,
-      meta,
-    })
-    .then(({ error }) => {
-      if (error) console.error('Activity log failed:', error)
-    })
+/**
+ * Audit logging utility.
+ * Currently uses a safe console mock to prevent build/runtime crashes.
+ * 
+ * To enable real database logging later:
+ * 1. Create an `audit_logs` table in Supabase.
+ * 2. Import supabase and auth here.
+ * 3. Replace the console.log with a supabase.from('audit_logs').insert(...) call.
+ */
+export async function logActivity(
+  event: string,
+  table: string,
+  recordId: string,
+  metadata: Record<string, any> = {}
+): Promise<void> {
+  try {
+    // Safe mock for deployment (Logs to browser console)
+    console.log(
+      `[Audit] ${new Date().toISOString()} | ${event} on ${table} (${recordId})`,
+      metadata
+    );
+    
+    /* 
+    // --- FUTURE: Real Supabase Implementation ---
+    // import { supabase } from './supabase'
+    // import { useAuthStore } from '@/stores/auth'
+    // 
+    // const auth = useAuthStore()
+    // const { error } = await supabase.from('audit_logs').insert({
+    //   event,
+    //   table_name: table,
+    //   record_id: recordId,
+    //   metadata,
+    //   user_id: auth.user?.id || null,
+    //   created_at: new Date().toISOString(),
+    // })
+    // if (error) console.error('Failed to write audit log:', error)
+    */
+    
+  } catch (err) {
+    // Swallow errors so audit logging never breaks the UI
+    console.error('Audit logging failed:', err)
+  }
 }

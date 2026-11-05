@@ -15,7 +15,6 @@
       Back to list
     </router-link>
 
-    <!-- ===== Hero card ===== -->
     <section class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
       <div class="flex flex-wrap items-start justify-between gap-6">
         <div class="flex items-start gap-[18px]">
@@ -63,30 +62,6 @@
       </dl>
     </section>
 
-    <!-- ===== ✅ PHASE 3: Assets & Access chips ===== -->
-    <section v-if="assets.length || accounts.length" class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
-      <h3 class="text-[15px] font-semibold text-ink">Assets & Access</h3>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <span
-          v-for="a in assets"
-          :key="a.id"
-          class="inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-xs font-medium"
-          :class="a.status === 'assigned' ? 'border-[#A9C4DC] bg-[#E4EEF6] text-ink' : 'border-transparent bg-[#e5eaf1] text-[#7b8794]'"
-        >
-          {{ (a.category || '').replace('_', ' ') }} · {{ a.asset_tag }} · {{ a.status === 'assigned' ? 'Assigned' : 'Returned' }}
-        </span>
-        <span
-          v-for="s in accounts"
-          :key="s.id"
-          class="inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-xs font-medium"
-          :class="s.status === 'active' ? 'border-[#e4b4b4] bg-[#FDF5F6] text-[#B3373F]' : 'border-transparent bg-[#e5eaf1] text-[#7b8794]'"
-        >
-          {{ (s.system || '').replace(/_/g, ' ') }} · {{ s.status === 'active' ? 'Active' : 'Revoked' }}
-        </span>
-      </div>
-    </section>
-
-    <!-- ===== Metrics grid ===== -->
     <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
       <div class="rounded-xl border border-brand bg-brand px-5 pb-5 pt-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
@@ -122,7 +97,51 @@
       </div>
     </section>
 
-    <!-- ===== Requirements ===== -->
+    <!-- ✅ PHASE 3: Assets & System Accounts Summary -->
+    <section class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-ink">Assigned Assets</h3>
+          <span class="text-[12px] text-ink-3">{{ assets.length }} items</span>
+        </div>
+        <ul v-if="assets.length" class="flex flex-col gap-3">
+          <li v-for="a in assets" :key="a.id" class="flex flex-wrap items-center gap-3 rounded-[10px] border border-[#e2e8f0] bg-[#fbfdfe] p-3.5">
+            <AppIcon name="i-file" class="h-5 w-5 flex-shrink-0 text-[#8a99a8]" />
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-[13.5px] font-semibold text-[#243447]">{{ a.asset_tag }}</span>
+              <span class="mt-0.5 block text-xs text-[#8a99a8]">{{ a.category }} · {{ a.model || '—' }}</span>
+            </span>
+            <span class="rounded-pill px-2.5 py-1 text-xs font-medium" :class="assetPill(a.status)">{{ assetLabel(a.status) }}</span>
+          </li>
+        </ul>
+        <p v-else class="rounded-[10px] border-[1.5px] border-dashed border-[#d5dee7] px-4 py-[18px] text-[13px] text-[#8a99a8]">
+          No assets currently assigned to this consultant.
+        </p>
+      </div>
+
+      <div class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-ink">System Accounts</h3>
+          <span class="text-[12px] text-ink-3">{{ accounts.length }} items</span>
+        </div>
+        <ul v-if="accounts.length" class="flex flex-col gap-3">
+          <li v-for="s in accounts" :key="s.id" class="flex flex-wrap items-center gap-3 rounded-[10px] border border-[#e2e8f0] bg-[#fbfdfe] p-3.5">
+            <AppIcon name="i-file" class="h-5 w-5 flex-shrink-0 text-[#8a99a8]" />
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-[13.5px] font-semibold text-[#243447] capitalize">{{ (s.system || '').replace(/_/g, ' ') }}</span>
+              <span class="mt-0.5 block text-xs text-[#8a99a8]">{{ s.identifier || '—' }}</span>
+            </span>
+            <span class="rounded-pill px-2.5 py-1 text-xs font-medium" :class="s.status === 'active' ? 'bg-[#B0761A] text-white' : 'bg-[#e5eaf1] text-[#7b8794]'">
+              {{ s.status === 'active' ? 'Active' : 'Revoked' }}
+            </span>
+          </li>
+        </ul>
+        <p v-else class="rounded-[10px] border-[1.5px] border-dashed border-[#d5dee7] px-4 py-[18px] text-[13px] text-[#8a99a8]">
+          No system accounts registered for this consultant.
+        </p>
+      </div>
+    </section>
+
     <section class="flex flex-col gap-5">
       <div v-for="req in requirements" :key="req.id" class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
         <div class="flex flex-wrap items-start justify-between gap-4">
@@ -211,13 +230,12 @@
       {{ feedbackMessage }}
     </div>
 
-    <!-- Offboarding Requirement Modal -->
-    <OffboardingRequirementModal
-      :open="showReqModal"
-      :edit-id="editingReqId"
-      :offboarding-id="offboardingId"
-      @close="showReqModal = false"
-      @saved="handleReqSaved"
+    <OffboardingRequirementModal 
+      :open="showReqModal" 
+      :edit-id="editingReqId" 
+      :offboarding-id="offboardingId" 
+      @close="showReqModal = false" 
+      @saved="handleReqSaved" 
     />
   </div>
 </template>
@@ -238,15 +256,12 @@ const auth = useAuthStore()
 
 const onboarding = ref<any>(null)
 const requirements = ref<any[]>([])
+const assets = ref<any[]>([])
+const accounts = ref<any[]>([])
 const loading = ref(true)
 const expandedRequirements = ref<Set<string>>(new Set())
 const feedbackMessage = ref('')
 
-// ✅ PHASE 3: Assets & accounts for the chips strip
-const assets = ref<any[]>([])
-const accounts = ref<any[]>([])
-
-// Modal state
 const showReqModal = ref(false)
 const editingReqId = ref<string | null>(null)
 const offboardingId = computed(() => route.params.id as string)
@@ -311,6 +326,19 @@ function lifecycleHint(status: string) {
   return map[status] ?? ''
 }
 
+function assetPill(status: string) {
+  switch (status) {
+    case 'assigned': return 'bg-[#0E5A8C] text-white'
+    case 'in_stock': return 'border border-[#A9C4DC] bg-[#E4EEF6] text-ink'
+    case 'maintenance': return 'bg-[#B0761A] text-white'
+    default: return 'bg-[#e5eaf1] text-[#7b8794]'
+  }
+}
+function assetLabel(status: string) {
+  const map: Record<string, string> = { in_stock: 'In Stock', assigned: 'Assigned', maintenance: 'Maintenance', retired: 'Retired' }
+  return map[status] ?? status
+}
+
 const isDraft = computed(() => onboarding.value?.status === 'draft')
 const isLocked = computed(() => ['completed', 'archived'].includes(onboarding.value?.status))
 const canArchive = computed(() => ['sent', 'in_progress'].includes(onboarding.value?.status))
@@ -354,26 +382,35 @@ onMounted(async () => {
 async function fetchData() {
   loading.value = true
   const obId = route.params.id as string
+  
+  // ✅ FIX: Cast to `any` to bypass Supabase TS2551 join inference bug
   const { data: obData, error: obError } = await supabase
     .from('offboardings')
     .select(`
-      id, ob_ref, status, last_working_day,
+      id, ob_ref, status, last_working_day, consultant_id,
       consultants:consultant_id (full_name, job_title, email, client, project, department, country, engagement_start, engagement_end),
       hr:assigned_hr_id (full_name)
     `)
     .eq('id', obId)
-    .single()
+    .single() as any
 
-  if (obError || !obData) { console.error('Error fetching offboarding:', obError); loading.value = false; return }
+  if (obError || !obData) { 
+    console.error('Error fetching offboarding:', obError)
+    loading.value = false
+    return 
+  }
+  
   onboarding.value = obData
 
-  // ✅ PHASE 3: Fetch assets & system accounts for the chips strip
-  const [ast, acc] = await Promise.all([
-    supabase.from('assets').select('*').eq('assigned_to', obData.consultant_id).order('created_at'),
-    supabase.from('system_accounts').select('*').eq('consultant_id', obData.consultant_id).order('created_at'),
-  ])
-  assets.value = ast.data || []
-  accounts.value = acc.data || []
+  // ✅ PHASE 3: Fetch Assets & System Accounts using consultant_id
+  if (obData.consultant_id) {
+    const [assetsRes, accountsRes] = await Promise.all([
+      supabase.from('assets').select('*').eq('assigned_to', obData.consultant_id).order('created_at', { ascending: false }),
+      supabase.from('system_accounts').select('*').eq('consultant_id', obData.consultant_id).order('created_at', { ascending: false })
+    ])
+    assets.value = assetsRes.data || []
+    accounts.value = accountsRes.data || []
+  }
 
   const { data: reqsData, error: reqsError } = await supabase
     .from('offboarding_requirements')
@@ -390,6 +427,7 @@ async function fetchData() {
 
   if (reqsError) console.error('Error fetching requirements:', reqsError)
   else requirements.value = reqsData || []
+  
   loading.value = false
 }
 
@@ -414,7 +452,6 @@ async function setSubStatus(sub: any, status: 'pending' | 'completed') {
   await fetchData()
 }
 
-// Modal triggers
 function openReqEdit(req: any) {
   editingReqId.value = req.id
   showReqModal.value = true

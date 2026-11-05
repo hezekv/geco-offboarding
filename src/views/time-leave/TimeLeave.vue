@@ -543,14 +543,14 @@ function handleRejectLeave() {
   }
 }
 
-// ✅ FIX: Added `as any` to bypass strict TS types for the new tables
+// ✅ FIX: Added `(supabase as any)` to bypass strict TS types
 async function confirmRevert() {
   const table = revertType.value === 'ts' ? 'timesheets' : 'leave_requests'
-  const { error } = await supabase.from(table).update({ 
+  const { error } = await (supabase as any).from(table).update({ 
     status: 'rejected', 
     rejection_reason: 'Reverted from approved status by HR Admin.', 
     updated_at: new Date().toISOString() 
-  }).eq('id', revertRow.value.id) as any
+  }).eq('id', revertRow.value.id)
   
   if (error) return showFeedback(`Failed: ${error.message}`)
   logActivity(`${revertType.value}.reverted`, table, revertRow.value.id, { previous_status: 'approved' })
@@ -559,11 +559,11 @@ async function confirmRevert() {
   await refreshAll()
 }
 
-// ✅ FIX: Added `as any` to bypass strict TS types for the new tables
+// ✅ FIX: Added `(supabase as any)` to bypass strict TS types
 async function confirmReject() {
   if (!rejectReason.value.trim()) return showFeedback('Please provide a rejection reason.')
   const table = rejectType.value === 'ts' ? 'timesheets' : 'leave_requests'
-  const { error } = await supabase.from(table).update({ status: 'rejected', rejection_reason: rejectReason.value.trim(), updated_at: new Date().toISOString() }).eq('id', rejectRow.value.id) as any
+  const { error } = await (supabase as any).from(table).update({ status: 'rejected', rejection_reason: rejectReason.value.trim(), updated_at: new Date().toISOString() }).eq('id', rejectRow.value.id)
   if (error) return showFeedback(`Failed: ${error.message}`)
   logActivity(`${rejectType.value}.rejected`, table, rejectRow.value.id, { reason: rejectReason.value })
   rejectModalOpen.value = false; showFeedback('Rejected successfully.'); await refreshAll()
@@ -572,17 +572,17 @@ async function confirmReject() {
 function menuViewTs() { viewRowType.value = 'ts'; viewRow.value = openTsRow.value; viewModalOpen.value = true; closeMenus() }
 function menuViewLeave() { viewRowType.value = 'leave'; viewRow.value = openLeaveRow.value; viewModalOpen.value = true; closeMenus() }
 
-// ✅ FIX: Added `as any` to bypass strict TS types for the new tables
+// ✅ FIX: Added `(supabase as any)` to bypass strict TS types
 async function menuApproveTs() {
-  const { error } = await supabase.from('timesheets').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.user?.id }).eq('id', openTsRow.value.id) as any
+  const { error } = await (supabase as any).from('timesheets').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.user?.id }).eq('id', openTsRow.value.id)
   if (error) return showFeedback(`Failed: ${error.message}`)
   logActivity('timesheet.approved', 'timesheets', openTsRow.value.id, {})
   closeMenus(); showFeedback('Timesheet approved.'); await refreshAll()
 }
 
-// ✅ FIX: Added `as any` to bypass strict TS types for the new tables
+// ✅ FIX: Added `(supabase as any)` to bypass strict TS types
 async function menuApproveLeave() {
-  const { error } = await supabase.from('leave_requests').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.user?.id }).eq('id', openLeaveRow.value.id) as any
+  const { error } = await (supabase as any).from('leave_requests').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: auth.user?.id }).eq('id', openLeaveRow.value.id)
   if (error) return showFeedback(`Failed: ${error.message}`)
   logActivity('leave.approved', 'leave_requests', openLeaveRow.value.id, {})
   closeMenus(); showFeedback('Leave request approved.'); await refreshAll()
@@ -595,11 +595,11 @@ onMounted(async () => {
   await refreshAll()
 })
 
-// ✅ FIX: Added `as any` to bypass strict TS types for the new tables
+// ✅ FIX: Added `(supabase as any)` to bypass strict TS types
 async function refreshAll() {
   const [t, l] = await Promise.all([
-    supabase.from('timesheets').select('*').order('created_at', { ascending: false }) as any,
-    supabase.from('leave_requests').select('*').order('created_at', { ascending: false }) as any,
+    (supabase as any).from('timesheets').select('*').order('created_at', { ascending: false }),
+    (supabase as any).from('leave_requests').select('*').order('created_at', { ascending: false }),
   ])
   timesheets.value = t.data || []
   leaves.value = l.data || []

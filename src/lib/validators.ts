@@ -14,13 +14,13 @@ export async function hasUnapprovedTimesheets(
     ? lastWorkingDay.toISOString().split('T')[0] 
     : lastWorkingDay
 
-  // ✅ FIX: Added `as any` to bypass strict TS types for the new 'timesheets' table
-  const { count, error } = await supabase
+  // ✅ FIX: Cast supabase as any to bypass missing type definitions
+  const { count, error } = await (supabase as any)
     .from('timesheets')
     .select('id', { count: 'exact', head: true })
     .eq('consultant_id', consultantId)
     .lte('period_end', lwdString)
-    .neq('status', 'approved') as any
+    .neq('status', 'approved')
 
   if (error) {
     console.error('Validator error:', error)

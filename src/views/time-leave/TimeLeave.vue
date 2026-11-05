@@ -69,6 +69,16 @@
           <AppIcon name="i-x" class="h-3 w-3" />
         </button>
       </div>
+
+      <!-- ✅ NEW: Export CSV Button -->
+      <button
+        type="button"
+        class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#d5dee8] bg-white px-4 text-[13px] font-semibold text-ink-2 shadow-sm transition-colors hover:bg-[#f2f6fa]"
+        @click="handleExportCSV"
+      >
+        <Download class="h-4 w-4" />
+        Export CSV
+      </button>
     </div>
 
     <!-- ===== Timesheets Table ===== -->
@@ -322,7 +332,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate } from '@/lib/utils'
 import { logActivity } from '@/lib/activity'
-import { ChevronDown, Check, XCircle } from 'lucide-vue-next'
+import { exportToCSV } from '@/lib/csvExport' // ✅ NEW: Import CSV utility
+import { ChevronDown, Check, XCircle, Download } from 'lucide-vue-next' // ✅ NEW: Import Download icon
 
 const auth = useAuthStore()
 
@@ -603,6 +614,38 @@ async function refreshAll() {
   ])
   timesheets.value = t.data || []
   leaves.value = l.data || []
+}
+
+// ✅ NEW: CSV Export Handler
+function handleExportCSV() {
+  const combinedData = [
+    ...searchedTimesheets.value.map((t) => ({
+      RecordType: 'Timesheet',
+      Consultant: consultantName(t.consultant_id),
+      PeriodStart: t.period_start,
+      PeriodEnd: t.period_end,
+      TotalHours: t.total_hours,
+      Status: statusLabel(t.status),
+    })),
+    ...searchedLeaves.value.map((l) => ({
+      RecordType: 'Leave Request',
+      Consultant: consultantName(l.consultant_id),
+      PeriodStart: l.start_date,
+      PeriodEnd: l.end_date,
+      LeaveType: (l.leave_type || '').replace('_', ' '),
+      Status: statusLabel(l.status),
+      Reason: l.reason || '',
+    })),
+  ];
+
+  if (combinedData.length === 0) {
+    showFeedback('No records found to export.');
+    return;
+  }
+
+  const dateStr = new Date().toISOString().split('T')[0];
+  exportToCSV(combinedData, `geco_time_leave_report_${dateStr}`);
+  showFeedback('CSV exported successfully!');
 }
 
 function showFeedback(msg: string) { feedback.value = msg; setTimeout(() => { feedback.value = '' }, 4000) }

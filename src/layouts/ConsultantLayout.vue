@@ -32,7 +32,7 @@
       </div>
     </header>
 
-    <!-- ✅ PHASE 2 PATCH: Portal Tabs -->
+    <!-- ✅ PHASE 4: Portal Tabs (Added My Timesheets) -->
     <nav class="mx-auto w-full max-w-5xl px-6">
       <div class="flex gap-1 border-b border-[#e2e8f0]">
         <router-link
@@ -48,6 +48,14 @@
           :class="$route.path === '/portal/onboarding' ? 'border-[#0D5F8F] text-[#0D5F8F]' : 'border-transparent text-[#64758b] hover:text-ink'"
         >
           My Onboarding
+        </router-link>
+        <!-- ✅ PHASE 4: New Tab -->
+        <router-link
+          to="/portal/timesheets"
+          class="border-b-2 px-4 py-2.5 text-[13.5px] font-semibold transition-colors"
+          :class="$route.path === '/portal/timesheets' ? 'border-[#0D5F8F] text-[#0D5F8F]' : 'border-transparent text-[#64758b] hover:text-ink'"
+        >
+          My Timesheets
         </router-link>
       </div>
     </nav>

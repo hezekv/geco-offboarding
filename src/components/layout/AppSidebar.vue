@@ -101,7 +101,8 @@ import {
   UserMinus,
   ClipboardList,
   ChevronRight,
-  Package, // ✅ PHASE 3: Asset catalog icon
+  CalendarClock,
+  Package, // ✅ FIX: Imported Package icon
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -123,10 +124,9 @@ type NavGroup = {
 const standaloneItems: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: 'i-sliders' },
   { label: 'Consultants', to: '/consultants', icon: 'i-badge-check' },
-  { label: 'Contacts', to: '/contacts', icon: 'i-edit' },
-  { label: 'Performance', to: '/performance', icon: 'i-clock' },
-  // ✅ PHASE 3: New standalone entry
-  { label: 'Assets & Access', to: '/assets-access', icon: Package },
+  // ✅ REMOVED: Contacts and Performance
+  { label: 'Assets & Access', to: '/assets-access', icon: Package }, // ✅ FIX: Changed from string 'Package' to component
+  { label: 'Time & Leave', to: '/time-leave', icon: CalendarClock },
 ]
 
 // ----- Hierarchical groups -----
@@ -151,7 +151,7 @@ const navGroups: NavGroup[] = [
   },
 ]
 
-// ----- Expand / collapse state (collapsed by default) -----
+// ----- Expand / collapse state -----
 const expandedGroups = ref<Record<string, boolean>>({
   configurations: false,
   employees: false,

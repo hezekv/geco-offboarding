@@ -36,18 +36,7 @@ const router = createRouter({
           name: 'consultant-detail',
           component: () => import('@/views/consultants/ConsultantDetail.vue'),
         },
-        {
-          path: 'contacts',
-          name: 'contacts',
-          component: () => import('@/views/Placeholder.vue'),
-          props: { title: 'Contacts' },
-        },
-        {
-          path: 'performance',
-          name: 'performance',
-          component: () => import('@/views/Placeholder.vue'),
-          props: { title: 'Performance' },
-        },
+        // ✅ REMOVED: contacts and performance routes
         // Configurations
         {
           path: 'offboarding-config',
@@ -80,11 +69,17 @@ const router = createRouter({
           name: 'onboarding-profile',
           component: () => import('@/views/onboarding/OnboardingProfile.vue'),
         },
-        // ✅ PHASE 3: Assets & Access
+        // Phase 3: Assets & Access
         {
           path: 'assets-access',
           name: 'assets-access',
           component: () => import('@/views/assets/AssetsAccess.vue'),
+        },
+        // Phase 4: Time & Leave (HR)
+        {
+          path: 'time-leave',
+          name: 'time-leave',
+          component: () => import('@/views/time-leave/TimeLeave.vue'),
         },
       ],
     },
@@ -105,6 +100,11 @@ const router = createRouter({
           name: 'portal-onboarding',
           component: () => import('@/views/portal/ConsultantOnboarding.vue'),
         },
+        {
+          path: 'timesheets',
+          name: 'portal-timesheets',
+          component: () => import('@/views/portal/ConsultantTimesheets.vue'),
+        },
       ],
     },
     // Catch-all
@@ -115,34 +115,28 @@ const router = createRouter({
   ],
 })
 
-// ✅ FIXED GUARD: loop-proof role handling
-// Any role that is NOT 'consultant' is treated as HR staff (admin, super_admin, hrbp, manager…).
-// Redirects always terminate because the target route passes the same checks.
+// Loop-proof navigation guard
 router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
   const isLoggedIn = !!auth.user
   const isConsultant = auth.role === 'consultant'
 
-  // 1) Guest-only pages (e.g. /login)
   if (to.meta.requiresGuest) {
     if (isLoggedIn) return next(isConsultant ? '/portal' : '/dashboard')
     return next()
   }
 
-  // 2) Auth-required pages
   if (to.meta.requiresAuth && !isLoggedIn) {
     return next('/login')
   }
 
-  // 3) Role-restricted areas — only bounce the "wrong side", never compare raw role strings
   if (to.meta.role === 'consultant' && !isConsultant) {
-    return next('/dashboard') // HR staff don't belong in the portal
+    return next('/dashboard')
   }
   if (to.meta.role === 'hr' && isConsultant) {
-    return next('/portal') // Consultants don't belong in the HR shell
+    return next('/portal')
   }
 
-  // 4) Everything else passes (including undefined role while profile loads)
   return next()
 })
 

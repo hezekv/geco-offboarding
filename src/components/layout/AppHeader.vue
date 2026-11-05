@@ -1,6 +1,6 @@
 <template>
-  <header class="sticky top-0 z-20 flex h-[76px] items-center justify-between gap-6 bg-white px-8">
-    <!-- ===== Left: portal label + dynamic page title ===== -->
+  <header class="sticky top-0 z-20 flex h-[76px] items-center justify-between gap-6 border-b border-line bg-white px-8">
+    <!-- Left: portal label + dynamic page title -->
     <div class="min-w-0">
       <p class="text-[11px] font-medium uppercase tracking-[.18em] text-ink-3">
         HR Business Partner Portal
@@ -10,16 +10,14 @@
       </h1>
     </div>
 
-    <!-- ===== Right: Notifications + Account side by side ===== -->
+    <!-- Right: Notifications + Account -->
     <div class="flex flex-shrink-0 items-center gap-3">
-      <!-- Notifications -->
       <NotificationBell />
 
-      <!-- Account card (default state) + dropdown (clicked state) -->
       <div class="relative">
         <button
           type="button"
-          class="flex items-center gap-3 rounded-[12px] border-l border-[#e4eaf0] bg-white py-2.5 pl-3 pr-4 text-left shadow-sm transition-colors duration-150 hover:bg-[#f6f9fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          class="flex items-center gap-3 rounded-[12px] border border-[#e4eaf0] bg-white py-2.5 pl-3 pr-4 text-left shadow-sm transition-colors duration-150 hover:bg-[#f6f9fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           :aria-expanded="menuOpen"
           aria-haspopup="menu"
           @click="menuOpen = !menuOpen"
@@ -37,7 +35,6 @@
           </span>
         </button>
 
-        <!-- Clicked state: sign-out panel below the card -->
         <div
           v-if="menuOpen"
           role="menu"
@@ -55,7 +52,6 @@
           </button>
         </div>
 
-        <!-- Click-away layer -->
         <div v-if="menuOpen" class="fixed inset-0 z-30" @click="menuOpen = false"></div>
       </div>
     </div>
@@ -75,7 +71,6 @@ const auth = useAuthStore()
 
 const menuOpen = ref(false)
 
-// ✅ Aligned with the DB enum (super_admin | hrbp | consultant) + legacy aliases
 const formattedRole = computed(() => {
   const map: Record<string, string> = {
     super_admin: 'Super Admin',
@@ -87,23 +82,23 @@ const formattedRole = computed(() => {
   return map[auth.role || ''] || 'HRBP'
 })
 
-// ✅ Dynamic page title (includes Phase 3 route)
+// ✅ REMOVED: contacts and performance mappings
 const pageTitle = computed(() => {
   const map: Record<string, string> = {
     dashboard: 'Dashboard',
     consultants: 'Consultants',
     'consultant-detail': 'Consultant Profile',
-    contacts: 'Contacts',
-    performance: 'Performance',
     'offboarding-config': 'Offboarding Configurations',
     'onboarding-config': 'Onboarding Configurations',
     'offboarding-employees': 'Offboarding Employees',
     'offboarding-profile': 'Offboarding Profile',
-    'onboarding-records': 'Onboarding Employees',
+    'onboarding-records': 'Onboarding Records',
     'onboarding-profile': 'Onboarding Profile',
     'assets-access': 'Assets & Access',
+    'time-leave': 'Time & Leave',
     'portal-checklist': 'My Offboarding',
     'portal-onboarding': 'My Onboarding',
+    'portal-timesheets': 'My Timesheets',
   }
   return map[route.name as string] || 'HR Portal'
 })

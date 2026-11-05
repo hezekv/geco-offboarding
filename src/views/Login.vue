@@ -1,91 +1,144 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-[#EFF3F7] px-4 py-10">
-    <div class="w-full max-w-[420px]">
-      <!-- Brand -->
-      <div class="mb-8 flex flex-col items-center gap-4">
-        <div class="grid h-12 w-12 place-items-center rounded-xl border border-line bg-white text-[#16202e] shadow-sm">
-          <AppIcon name="i-file" class="h-6 w-6" />
+  <!-- ✅ GECO Brand Dark Theme: Deep Navy Base -->
+  <div class="flex min-h-screen w-full bg-[#122033] text-white" style="font-family: 'IBM Plex Sans', sans-serif;">
+    
+    <!-- ===== Left Panel: Sign In Form ===== -->
+    <div class="flex w-full flex-col justify-center px-8 py-12 lg:w-1/2 lg:px-24 xl:px-32">
+      
+      <!-- Logo -->
+      <div class="mb-12 flex items-center gap-3">
+        <div class="grid h-24 w-24 place-items-center rounded-xl bg-[#12607A] text-white shadow-lg shadow-[#12607A]/20">
+          <BriefcaseBusiness class="h-16 w-16" />
         </div>
-        <div class="text-center">
-          <h1 class="text-xl font-bold leading-tight text-ink">GECO Asia</h1>
-          <p class="mt-1 text-[13px] text-ink-3">HR Business Partner Portal · Southeast Asia Operations</p>
-        </div>
+        <span class="text-5xl font-bold tracking-tight text-white">GECO Asia</span>
       </div>
 
-      <!-- Sign-in card -->
-      <form
-        class="rounded-[16px] border border-line bg-white p-7 shadow-md"
-        novalidate
-        @submit.prevent="handleSubmit"
+      <!-- Error Banner -->
+      <div
+        v-if="error"
+        role="alert"
+        class="mb-6 rounded-xl border border-[#C24152]/30 bg-[#C24152]/10 px-4 py-3 text-sm font-medium text-[#FF8A9B]"
       >
-        <h2 class="text-lg font-semibold text-ink">Sign in</h2>
-        <p class="mb-6 mt-1 text-[13px] text-ink-3">Use your GECO credentials to continue.</p>
+        {{ error }}
+      </div>
 
-        <!-- Error banner -->
-        <div
-          v-if="error"
-          role="alert"
-          class="mb-5 rounded-[10px] border border-[#e4b4b4] bg-status-danger-soft px-4 py-3 text-[13px] font-medium text-[#c14b4b]"
-        >
-          {{ error }}
+      <!-- Form -->
+      <form class="space-y-6" novalidate @submit.prevent="handleSubmit">
+        <!-- Email -->
+        <div>
+          <label class="mb-2 block text-sm font-medium text-[#A0B0C0]">Email Address</label>
+          <div class="relative">
+            <input
+              v-model="email"
+              type="email"
+              required
+              autocomplete="username"
+              placeholder="you@geco.asia"
+              class="h-12 w-full rounded-xl border border-[#2A3A4A] bg-[#1A2A3A] px-4 text-sm text-white transition-all placeholder:text-[#5A6A7A] focus:border-[#12607A] focus:bg-[#1E3048] focus:outline-none focus:ring-4 focus:ring-[#12607A]/20"
+            />
+          </div>
         </div>
 
-        <!-- Email -->
-        <label class="mb-4 block">
-          <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Email</span>
-          <input
-            v-model="email"
-            type="email"
-            required
-            autocomplete="username"
-            placeholder="you@geco.asia"
-            class="h-11 w-full rounded-[10px] border border-[#d5dee8] bg-white px-4 text-sm text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-ink-4 hover:border-[#b9c8d8] focus:border-[#12607A] focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]"
-          />
-        </label>
-
         <!-- Password -->
-        <label class="mb-6 block">
-          <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Password</span>
-          <span class="relative block">
+        <div>
+          <label class="mb-2 block text-sm font-medium text-[#A0B0C0]">Password</label>
+          <div class="relative">
             <input
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
               required
               autocomplete="current-password"
               placeholder="••••••••"
-              class="h-11 w-full rounded-[10px] border border-[#d5dee8] bg-white px-4 pr-11 text-sm text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-ink-4 hover:border-[#b9c8d8] focus:border-[#12607A] focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]"
+              class="h-12 w-full rounded-xl border border-[#2A3A4A] bg-[#1A2A3A] px-4 pr-12 text-sm text-white transition-all placeholder:text-[#5A6A7A] focus:border-[#12607A] focus:bg-[#1E3048] focus:outline-none focus:ring-4 focus:ring-[#12607A]/20"
             />
             <button
               type="button"
-              class="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center text-ink-3 transition-colors hover:text-ink"
-              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-[#5A6A7A] transition-colors hover:text-[#12607A]"
               @click="showPassword = !showPassword"
             >
               <EyeOff v-if="showPassword" class="h-4 w-4" />
               <Eye v-else class="h-4 w-4" />
             </button>
-          </span>
-        </label>
+          </div>
+        </div>
 
-        <!-- Submit -->
+        <!-- Submit Button (Brand Teal) -->
         <button
           type="submit"
           :disabled="loading || !email || !password"
-          class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[10px] border border-[#12607A] bg-[#12607A] text-sm font-semibold text-white transition-colors hover:border-[#0E4C63] hover:bg-[#0E4C63] disabled:cursor-not-allowed disabled:opacity-55"
+          class="flex h-12 w-full items-center justify-center rounded-xl bg-[#12607A] text-sm font-bold text-white shadow-lg shadow-[#12607A]/25 transition-all hover:bg-[#0E4C63] hover:shadow-[#12607A]/40 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <AppIcon v-if="!loading" name="i-send" class="h-4 w-4" />
-          <span
-            v-else
-            class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-            aria-hidden="true"
-          ></span>
-          {{ loading ? 'Signing in…' : 'Sign in' }}
+          <span v-if="loading" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white mr-2"></span>
+          {{ loading ? 'Signing in…' : 'Sign in to Portal' }}
         </button>
-
-        <p class="mt-5 text-center text-xs text-ink-4">
-          HR: tricia.almodiente@geco.asia · Consultant: kyay.mon@geco.asia · Geco@2026
-        </p>
       </form>
+
+      <!-- Footer / Demo Credentials -->
+      <div class="mt-12 border-t border-[#2A3A4A] pt-6">
+        <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-[#5A6A7A]">Demo Environment</p>
+        <div class="flex flex-col gap-y-2 text-xs text-[#8A9BB0]">
+          
+          <p class="text-sm"><span class="font-semibold text-[#12607A]">HR:</span> tricia.almodiente@geco.asia · mika.santos@geco.asia · ramon.cruz@geco.asia</p>
+          <p class="text-sm"><span class="font-semibold text-[#12607A]">Consultant:</span> kyay.mon@geco.asia · daniel.ong@geco.asia · angela.reyes@geco.asia</p>
+          <p class="text-sm">
+            <span class="font-semibold text-[#5A6A7A]">Password:</span> 
+            <span class="font-mono bg-[#1A2A3A] px-2 py-0.5 rounded text-[#A0B0C0]">Geco@2026</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Right Panel: Visual / Illustration ===== -->
+    <div class="hidden w-1/2 flex-col justify-center bg-[#0B1320] lg:flex relative overflow-hidden">
+      <!-- Abstract Background Grid (Brand Tinted) -->
+      <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#12607A 1px, transparent 1px); background-size: 32px 32px;"></div>
+      
+      <!-- Brand Glow Effects -->
+      <div class="absolute top-0 right-0 h-96 w-96 rounded-full bg-[#12607A]/10 blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+      <div class="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-[#177245]/10 blur-[80px] translate-y-1/2 -translate-x-1/2"></div>
+
+      <!-- Floating "Dashboard" Composition -->
+      <div class="relative z-10 mx-auto w-full max-w-lg px-12">
+        <div class="relative mx-auto aspect-square w-full max-w-md">
+          
+          <!-- Base Circle -->
+          <div class="absolute bottom-0 left-1/2 h-32 w-[120%] -translate-x-1/2 rounded-[50%] border border-[#1E3048] bg-[#0F1A29] shadow-2xl"></div>
+          
+          <!-- Floating Card 1 (Top Left - Amber Accent) -->
+          <div class="absolute top-10 left-0 h-24 w-32 rounded-2xl border border-[#1E3048] bg-[#152233] p-4 shadow-xl transform -rotate-6 animate-float-slow">
+            <div class="h-2 w-12 rounded bg-[#B0761A]/60 mb-2"></div>
+            <div class="h-2 w-20 rounded bg-[#2A3A4A]"></div>
+            <div class="h-2 w-16 rounded bg-[#2A3A4A] mt-2"></div>
+          </div>
+
+          <!-- Floating Card 2 (Top Right - Success Accent) -->
+          <div class="absolute top-20 right-0 h-20 w-24 rounded-2xl border border-[#1E3048] bg-[#152233] p-3 shadow-xl transform rotate-12 animate-float-delayed">
+            <div class="h-8 w-8 rounded-full bg-[#177245]/20 flex items-center justify-center mb-2">
+              <div class="h-3 w-3 rounded-full bg-[#177245]"></div>
+            </div>
+            <div class="h-2 w-12 rounded bg-[#2A3A4A]"></div>
+          </div>
+
+          <!-- Central "Screen" (Brand Teal Focus) -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-64 w-80 rounded-3xl border border-[#2A3A4A] bg-[#122033] shadow-2xl p-6 flex flex-col justify-between">
+            <!-- Window Controls -->
+            <div class="flex items-center gap-2 mb-4">
+              <div class="h-3 w-3 rounded-full bg-[#C24152]/60"></div>
+              <div class="h-3 w-3 rounded-full bg-[#B0761A]/60"></div>
+              <div class="h-3 w-3 rounded-full bg-[#177245]/60"></div>
+            </div>
+            <!-- Screen Content -->
+            <div class="space-y-3">
+              <div class="h-4 w-3/4 rounded bg-[#1E3048]"></div>
+              <div class="h-4 w-1/2 rounded bg-[#1E3048]"></div>
+              <!-- Teal Highlight Block -->
+              <div class="h-20 w-full rounded-xl bg-gradient-to-br from-[#12607A]/20 to-[#12607A]/5 border border-[#12607A]/30 flex items-center justify-center">
+                <div class="h-8 w-8 rounded-lg bg-[#12607A] shadow-lg shadow-[#12607A]/50"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -94,7 +147,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Eye, EyeOff } from 'lucide-vue-next'
+import { Eye, EyeOff, BriefcaseBusiness } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -113,8 +166,6 @@ async function handleSubmit() {
 
   try {
     await auth.signIn(email.value.trim(), password.value)
-
-    // ✅ OPTION 2 FIX: Clean comparison, no type casting needed!
     router.push(auth.role === 'consultant' ? '/portal' : '/dashboard')
   } catch (err: any) {
     const msg = err?.message || ''
@@ -126,3 +177,26 @@ async function handleSubmit() {
   }
 }
 </script>
+
+<style>
+/* Import IBM Plex Sans from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+</style>
+
+<style scoped>
+/* Custom animations for floating elements */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-15px) rotate(-6deg); }
+}
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0) rotate(12deg); }
+  50% { transform: translateY(-10px) rotate(12deg); }
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float-delayed 5s ease-in-out infinite 1s;
+}
+</style>

@@ -15,6 +15,7 @@
       Back to list
     </router-link>
 
+    <!-- ===== Hero card ===== -->
     <section class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
       <div class="flex flex-wrap items-start justify-between gap-6">
         <div class="flex items-start gap-[18px]">
@@ -62,6 +63,23 @@
       </dl>
     </section>
 
+    <!-- ✅ PHASE 4: Time & Leave Exit Criteria Warning Card -->
+    <section v-if="hasTimeLeaveBlockers" class="rounded-2xl border border-[#e4b4b4] bg-[#FDF5F6] p-6 shadow-sm">
+      <div class="flex items-start gap-4">
+        <div class="grid h-10 w-10 flex-none place-items-center rounded-full bg-[#FDF5F6] text-[#B3373F]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-[15px] font-semibold text-[#B3373F]">Action Required: Unapproved Timesheets</h3>
+          <p class="mt-1 text-[13.5px] leading-relaxed text-[#B3373F]/90">
+            This offboarding cannot be completed because there are unapproved timesheets ending on or before the Last Working Day ({{ formatDate(onboarding.last_working_day) }}). 
+            Please review and approve them in the <router-link to="/time-leave" class="font-semibold underline hover:text-[#8a2530]">Time & Leave</router-link> page.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Metrics grid ===== -->
     <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
       <div class="rounded-xl border border-brand bg-brand px-5 pb-5 pt-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
@@ -97,7 +115,7 @@
       </div>
     </section>
 
-    <!-- ✅ PHASE 3: Assets & System Accounts Summary -->
+    <!-- ===== Phase 3: Assets & System Accounts Summary ===== -->
     <section class="grid grid-cols-1 gap-6 xl:grid-cols-2">
       <div class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
         <div class="mb-4 flex items-center justify-between">
@@ -142,6 +160,7 @@
       </div>
     </section>
 
+    <!-- ===== Requirements ===== -->
     <section class="flex flex-col gap-5">
       <div v-for="req in requirements" :key="req.id" class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
         <div class="flex flex-wrap items-start justify-between gap-4">
@@ -226,10 +245,12 @@
       </div>
     </section>
 
+    <!-- ===== Feedback Toast ===== -->
     <div v-if="feedbackMessage" role="status" aria-live="polite" class="fixed bottom-6 right-6 z-40 rounded-[10px] bg-ink px-4 py-3 text-sm font-medium text-white shadow-lg">
       {{ feedbackMessage }}
     </div>
 
+    <!-- ===== Offboarding Requirement Modal ===== -->
     <OffboardingRequirementModal 
       :open="showReqModal" 
       :edit-id="editingReqId" 
@@ -237,6 +258,26 @@
       @close="showReqModal = false" 
       @saved="handleReqSaved" 
     />
+
+    <!-- ✅ PHASE 4: Blocking Modal for Exit Criteria -->
+    <Teleport to="body">
+      <div v-if="showBlockerModal" class="fixed inset-0 z-50 grid place-items-center bg-[rgba(18,32,51,.45)] p-6 backdrop-blur-[3px]" @click.self="showBlockerModal = false">
+        <div role="dialog" aria-modal="true" class="w-full max-w-[460px] rounded-[24px] border border-line bg-white p-[26px] shadow-lg">
+          <h3 class="mb-2 text-[18px] font-medium text-ink">Cannot Complete Offboarding</h3>
+          <p class="mb-5 text-[13px] text-ink-3">
+            There are unapproved timesheets ending on or before the Last Working Day. Please approve them in the Time & Leave page before archiving this record.
+          </p>
+          <div class="flex justify-end gap-3">
+            <button type="button" class="rounded-[10px] border border-line bg-white px-[18px] py-[11px] text-sm font-semibold text-ink hover:bg-[#f2f6fa]" @click="showBlockerModal = false">
+              Close
+            </button>
+            <router-link to="/time-leave" class="rounded-[10px] border border-brand bg-brand px-[18px] py-[11px] text-sm font-semibold text-white hover:bg-brand-dk">
+              Go to Time & Leave
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -248,6 +289,8 @@ import { useAuthStore } from '@/stores/auth'
 import { formatDate, formatFileSize, fileKind } from '@/lib/utils'
 import { Archive } from 'lucide-vue-next'
 import { logActivity } from '@/lib/activity'
+// ✅ PHASE 4: Import validator
+import { hasUnapprovedTimesheets } from '@/lib/validators'
 import OffboardingRequirementModal from '@/components/offboarding/OffboardingRequirementModal.vue'
 
 const route = useRoute()
@@ -261,6 +304,10 @@ const accounts = ref<any[]>([])
 const loading = ref(true)
 const expandedRequirements = ref<Set<string>>(new Set())
 const feedbackMessage = ref('')
+
+// ✅ PHASE 4: Validator state
+const hasTimeLeaveBlockers = ref(false)
+const showBlockerModal = ref(false)
 
 const showReqModal = ref(false)
 const editingReqId = ref<string | null>(null)
@@ -383,7 +430,6 @@ async function fetchData() {
   loading.value = true
   const obId = route.params.id as string
   
-  // ✅ FIX: Cast to `any` to bypass Supabase TS2551 join inference bug
   const { data: obData, error: obError } = await supabase
     .from('offboardings')
     .select(`
@@ -402,7 +448,12 @@ async function fetchData() {
   
   onboarding.value = obData
 
-  // ✅ PHASE 3: Fetch Assets & System Accounts using consultant_id
+  // ✅ PHASE 4: Check for unapproved timesheets <= LWD
+  if (obData.consultant_id && obData.last_working_day) {
+    hasTimeLeaveBlockers.value = await hasUnapprovedTimesheets(obData.consultant_id, obData.last_working_day)
+  }
+
+  // Phase 3: Fetch Assets & System Accounts
   if (obData.consultant_id) {
     const [assetsRes, accountsRes] = await Promise.all([
       supabase.from('assets').select('*').eq('assigned_to', obData.consultant_id).order('created_at', { ascending: false }),
@@ -540,7 +591,13 @@ async function handleSend() {
 
 function handleSaveDraft() { showFeedback('Offboarding saved as draft') }
 
+// ✅ PHASE 4: Block archive if timesheet validators fail
 async function handleArchive() {
+  if (hasTimeLeaveBlockers.value) {
+    showBlockerModal.value = true
+    return
+  }
+
   const { error } = await supabase.from('offboardings').update({ status: 'archived' }).eq('id', onboarding.value.id)
   if (error) { console.error(error); showFeedback('Failed to archive'); return }
   logActivity('offboarding.archived', 'offboarding', onboarding.value.id, { ob_ref: onboarding.value.ob_ref })

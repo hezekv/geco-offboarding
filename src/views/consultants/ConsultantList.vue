@@ -1,19 +1,16 @@
 <template>
   <div class="space-y-8">
-    
     <!-- Toolbar -->
     <div class="flex flex-wrap items-center gap-3 rounded-2xl">
-    
       <div class="relative pr-6">
-      <button
-        type="button"
-        class="inline-flex items-center gap-4 rounded-[10px] border border-[#12607A] bg-[#12607A] px-8 py-3 text-sm font-bold text-white transition-colors hover:border-[#198754] hover:bg-[#198754]"
-        @click="openCreate"
-      >
-        Add Consultant <AppIcon name="i-plus" class="h-4 w-4" />
-      </button>
-    </div>
-
+        <button
+          type="button"
+          class="inline-flex items-center gap-4 rounded-[10px] border border-[#12607A] bg-[#12607A] px-8 py-3 text-sm font-bold text-white transition-colors hover:border-[#198754] hover:bg-[#198754]"
+          @click="openCreate"
+        >
+          Add Consultant <AppIcon name="i-plus" class="h-4 w-4" />
+        </button>
+      </div>
       <!-- Search -->
       <div class="relative min-w-[240px] flex-1">
         <svg
@@ -29,12 +26,10 @@
           class="h-[46px] w-full rounded-[10px] border border-[#d5dee8] bg-[#f8fafc] pl-11 pr-4 text-sm text-ink transition-all duration-150 focus:border-[#12607A] focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.25)]"
         />
       </div>
-
       <!-- Record count -->
       <span class="whitespace-nowrap text-[13px] text-ink-3">
         {{ filtered.length }} of {{ consultants.length }} records
       </span>
-
       <!-- Filter Status dropdown -->
       <div class="relative">
         <button
@@ -53,7 +48,6 @@
           </svg>
           Filter Status
         </button>
-
         <!-- Dropdown panel -->
         <div
           v-if="filterOpen"
@@ -77,11 +71,9 @@
             </svg>
           </button>
         </div>
-
         <!-- Click-away layer -->
         <div v-if="filterOpen" class="fixed inset-0 z-20" @click="filterOpen = false"></div>
       </div>
-
     </div>
 
     <!-- Table card -->
@@ -99,7 +91,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="c in filtered" :key="c.id" class="border-b border-[#e6edf3] last:border-0 hover:bg-[#f4f8fb]">
+            <!-- ✅ NEW: Paginated rows -->
+            <tr v-for="c in paginated" :key="c.id" class="border-b border-[#e6edf3] last:border-0 hover:bg-[#f4f8fb]">
               <td class="h-[5.5rem] px-4 align-middle">
                 <span class="block font-semibold leading-snug text-ink">{{ c.full_name }}</span>
                 <span class="mt-0.5 block text-xs leading-snug text-[#5A6B80]">{{ c.email }}</span>
@@ -134,7 +127,8 @@
                 </div>
               </td>
             </tr>
-            <tr v-if="!filtered.length">
+            <!-- Empty state -->
+            <tr v-if="!paginated.length">
               <td colspan="6" class="px-4 py-16 text-center">
                 <p class="text-sm font-semibold text-ink">No matching consultants</p>
                 <p class="mt-1 text-[13px] text-ink-3">Try a different keyword, or clear the filters.</p>
@@ -143,6 +137,52 @@
           </tbody>
         </table>
       </div>
+
+      <!-- ✅ NEW: Pagination footer -->
+      <div v-if="filtered.length > 0" class="flex flex-wrap items-center justify-between gap-3 border-t border-[#D7E0EA] px-6 py-3.5">
+        <span class="text-[12.5px] text-ink-3">
+          Showing {{ rangeStart }}–{{ rangeEnd }} of {{ filtered.length }} records
+        </span>
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            :disabled="currentPage === 1"
+            aria-label="Previous page"
+            class="grid h-9 w-9 place-items-center rounded-[10px] border border-[#d5dee8] bg-white text-ink-2 transition-colors hover:bg-[#f2f6fa] disabled:cursor-not-allowed disabled:opacity-45"
+            @click="goToPage(currentPage - 1)"
+          >
+            <svg class="h-4 w-4 rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <template v-for="(p, idx) in pageButtons" :key="idx">
+            <span v-if="p === '…'" class="px-1 text-[13px] text-ink-4">…</span>
+            <button
+              v-else
+              type="button"
+              :aria-current="p === currentPage ? 'page' : undefined"
+              class="h-9 min-w-[36px] rounded-[10px] border px-2 text-[13px] font-semibold transition-colors"
+              :class="p === currentPage
+                ? 'border-[#12607A] bg-[#12607A] text-white'
+                : 'border-[#d5dee8] bg-white text-ink-2 hover:bg-[#f2f6fa]'"
+              @click="goToPage(Number(p))"
+            >
+              {{ p }}
+            </button>
+          </template>
+          <button
+            type="button"
+            :disabled="currentPage === totalPages"
+            aria-label="Next page"
+            class="grid h-9 w-9 place-items-center rounded-[10px] border border-[#d5dee8] bg-white text-ink-2 transition-colors hover:bg-[#f2f6fa] disabled:cursor-not-allowed disabled:opacity-45"
+            @click="goToPage(currentPage + 1)"
+          >
+            <svg class="h-4 w-4 -rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
 
     <ConsultantModal :open="modalOpen" :consultant="editing" @close="modalOpen = false" @saved="onSaved" />
@@ -150,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 import { consultantStatusPill } from '@/lib/documents'
@@ -165,6 +205,10 @@ const statusFilter = ref('')
 const filterOpen = ref(false)
 const modalOpen = ref(false)
 const editing = ref<any | null>(null)
+
+// ✅ NEW: Pagination state
+const PAGE_SIZE = 10
+const currentPage = ref(1)
 
 const statusOptions = [
   { value: '', label: 'All statuses' },
@@ -190,6 +234,38 @@ const filtered = computed(() => {
     return [c.full_name, c.email, c.client].some((v) => (v || '').toLowerCase().includes(q))
   })
 })
+
+// ✅ NEW: Paginated slice
+const paginated = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  return filtered.value.slice(start, start + PAGE_SIZE)
+})
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
+const rangeStart = computed(() => (filtered.value.length === 0 ? 0 : (currentPage.value - 1) * PAGE_SIZE + 1))
+const rangeEnd = computed(() => Math.min(filtered.value.length, currentPage.value * PAGE_SIZE))
+
+// ✅ NEW: Windowed page buttons with ellipsis
+const pageButtons = computed<(number | '…')[]>(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | '…')[] = [1]
+  if (current > 3) pages.push('…')
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) pages.push(p)
+  if (current < total - 2) pages.push('…')
+  pages.push(total)
+  return pages
+})
+
+function goToPage(p: number) {
+  if (!Number.isFinite(p)) return
+  currentPage.value = Math.min(Math.max(1, p), totalPages.value)
+}
+
+// ✅ NEW: Reset to page 1 when search/filter changes; clamp if results shrink
+watch([search, statusFilter], () => { currentPage.value = 1 })
+watch(totalPages, (max) => { if (currentPage.value > max) currentPage.value = max })
 
 function selectStatus(value: string) {
   statusFilter.value = value

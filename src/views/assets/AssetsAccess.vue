@@ -117,9 +117,30 @@
 
     <!-- ===== System accounts ===== -->
     <div class="overflow-hidden">
-      <div class="flex items-center justify-start gap-4 px-6 py-4">
-        <h2 class="text-[15px] font-semibold text-ink">System Accounts</h2>
-        <span class="text-[12px] text-ink-3">{{ filteredAccounts.length }} items</span>
+      <!-- ✅ UPDATED: header row with search input beside the title -->
+      <div class="flex flex-wrap items-center justify-start gap-4 px-6 py-4">
+        <div class="flex items-center gap-4">
+          <h2 class="text-[15px] font-semibold text-ink">System Accounts</h2>
+          <span class="text-[12px] text-ink-3">{{ searchedAccounts.length }} items</span>
+        </div>
+        <div class="relative min-w-[240px] flex-1 sm:max-w-[1040px]">
+          <AppIcon name="i-search" class="pointer-events-none absolute left-[12px] top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+          <input
+            v-model="accountSearch"
+            type="text"
+            placeholder="Search system, identifier, or consultant..."
+            class="h-[46px] w-full rounded-[10px] border border-[#d5dee8] bg-white pl-[36px] pr-9 text-[13px] text-ink transition-[border-color,box-shadow,background] duration-150 placeholder:text-[#8a97a8] hover:border-[#b9c8d8] focus:border-[#122033] focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-[rgba(14,116,144,.25)]"
+          />
+          <button
+            v-if="accountSearch"
+            type="button"
+            aria-label="Clear account search"
+            class="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-ink-3 transition-colors hover:bg-[#e9eef5] hover:text-ink"
+            @click="accountSearch = ''"
+          >
+            <AppIcon name="i-x" class="h-3 w-3" />
+          </button>
+        </div>
       </div>
       <div class="overflow-x-auto rounded-[24px] border border-line bg-white shadow-sm">
         <table class="w-full table-fixed text-left text-sm">
@@ -133,10 +154,14 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-line">
-            <tr v-if="filteredAccounts.length === 0">
-              <td colspan="5" class="px-6 py-12 text-center text-ink-3">No system accounts registered{{ consultantId ? ' for this consultant' : '' }}.</td>
+            <tr v-if="searchedAccounts.length === 0">
+              <td colspan="5" class="px-6 py-12 text-center text-ink-3">
+                <template v-if="accountSearch">No system accounts match "{{ accountSearch }}".</template>
+                <template v-else>No system accounts registered{{ consultantId ? ' for this consultant' : '' }}.</template>
+              </td>
             </tr>
-            <tr v-for="s in filteredAccounts" :key="s.id" class="transition-colors hover:bg-[#d7e0ea]/40">
+            <!-- ✅ UPDATED: iterate the paged slice (max 8 rows) -->
+            <tr v-for="s in pagedAccounts" :key="s.id" class="transition-colors hover:bg-[#d7e0ea]/40">
               <td class="px-6 py-4 font-semibold text-ink">{{ consultantName(s.consultant_id) }}</td>
               <td class="px-6 py-4 capitalize text-ink-2">{{ (s.system || '').replace(/_/g, ' ') }}</td>
               <td class="px-6 py-4 text-[13px] text-ink-3">{{ s.identifier || '—' }}</td>
@@ -158,6 +183,45 @@
             </tr>
           </tbody>
         </table>
+        <!-- ✅ NEW: pagination controls -->
+        <div v-if="searchedAccounts.length > 0" class="flex flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-3.5">
+          <span class="text-[12.5px] text-ink-3">
+            Showing {{ accountRangeStart }}–{{ accountRangeEnd }} of {{ searchedAccounts.length }} accounts
+          </span>
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              :disabled="accountPage === 1"
+              aria-label="Previous page"
+              class="grid h-9 w-9 place-items-center rounded-[10px] border border-[#d5dee8] bg-white text-ink-2 transition-colors hover:bg-[#f2f6fa] disabled:cursor-not-allowed disabled:opacity-45"
+              @click="goToAccountPage(accountPage - 1)"
+            >
+              <ChevronDown class="h-4 w-4 rotate-90" />
+            </button>
+            <template v-for="(p, idx) in accountPageButtons" :key="idx">
+              <span v-if="p === '…'" class="px-1 text-[13px] text-ink-4">…</span>
+              <button
+                v-else
+                type="button"
+                :aria-current="p === accountPage ? 'page' : undefined"
+                class="h-9 min-w-[36px] rounded-[10px] border px-2 text-[13px] font-semibold transition-colors"
+                :class="p === accountPage ? 'border-[#12607A] bg-[#12607A] text-white' : 'border-[#d5dee8] bg-white text-ink-2 hover:bg-[#f2f6fa]'"
+                @click="goToAccountPage(Number(p))"
+              >
+                {{ p }}
+              </button>
+            </template>
+            <button
+              type="button"
+              :disabled="accountPage === accountPageCount"
+              aria-label="Next page"
+              class="grid h-9 w-9 place-items-center rounded-[10px] border border-[#d5dee8] bg-white text-ink-2 transition-colors hover:bg-[#f2f6fa] disabled:cursor-not-allowed disabled:opacity-45"
+              @click="goToAccountPage(accountPage + 1)"
+            >
+              <ChevronDown class="h-4 w-4 -rotate-90" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -284,7 +348,7 @@
         <div role="dialog" aria-modal="true" class="w-full max-w-[560px] rounded-[24px] border border-line bg-white p-[26px] shadow-lg">
           <h3 class="mb-5 text-[18px] font-medium text-ink">{{ isEditingAccount ? 'Edit System Account' : 'Add System Account' }}</h3>
           <div class="grid grid-cols-2 gap-4">
-            <!-- ✅ UPDATED: Consultant = select on Add, read-only TEXT on Edit -->
+            <!-- Consultant: select on Add, read-only text on Edit -->
             <label class="col-span-2 block">
               <span class="mb-2 block text-xs font-medium text-ink-3">Consultant</span>
               <select v-if="!isEditingAccount" v-model="accountForm.consultant_id" :class="fieldCls">
@@ -298,6 +362,9 @@
                 :class="fieldCls + ' bg-[#f8fafc] text-ink-3 cursor-not-allowed'"
                 disabled
               />
+              <span v-if="isEditingAccount" class="mt-1 block text-[11px] text-ink-4">
+                Consultant is the unique owner of this system account and cannot be changed.
+              </span>
             </label>
             <label class="block">
               <span class="mb-2 block text-xs font-medium text-ink-3">System</span>
@@ -338,7 +405,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatDate } from '@/lib/utils'
@@ -375,6 +442,7 @@ function generateAssetTag(category: string, existingTag?: string) {
   return `GECO-${prefix}-${num}`
 }
 
+// ----- Base state -----
 const consultants = ref<any[]>([])
 const assets = ref<any[]>([])
 const accounts = ref<any[]>([])
@@ -393,6 +461,72 @@ const isEditingAccount = ref(false)
 const editingAccountId = ref<string | null>(null)
 const editingAccountRow = ref<any>(null)
 const accountForm = ref({ consultant_id: '', system: 'google_workspace', identifier: '', status: 'active' })
+
+// ----- ✅ FIX: Derived lists declared BEFORE anything that consumes them -----
+function consultantName(id: string) { return consultants.value.find((c) => c.id === id)?.full_name || '—' }
+
+const filteredAssets = computed(() => consultantId.value ? assets.value.filter((a) => a.assigned_to === consultantId.value) : assets.value)
+const filteredAccounts = computed(() => consultantId.value ? accounts.value.filter((s) => s.consultant_id === consultantId.value) : accounts.value)
+
+function assetPill(status: string) {
+  switch (status) {
+    case 'assigned': return 'bg-[#0E5A8C] text-white'
+    case 'in_stock': return 'border border-[#A9C4DC] bg-[#E4EEF6] text-ink'
+    case 'maintenance': return 'bg-[#B0761A] text-white'
+    default: return 'bg-[#e5eaf1] text-[#7b8794]'
+  }
+}
+function assetLabel(status: string) {
+  const map: Record<string, string> = { in_stock: 'In Stock', assigned: 'Assigned', maintenance: 'Maintenance', retired: 'Retired' }
+  return map[status] ?? status
+}
+
+// ----- ✅ System Accounts search + pagination (now safe: filteredAccounts exists above) -----
+const ACCOUNT_PAGE_SIZE = 8
+const accountSearch = ref('')
+const accountPage = ref(1)
+
+const searchedAccounts = computed(() => {
+  const q = accountSearch.value.trim().toLowerCase()
+  if (!q) return filteredAccounts.value
+  return filteredAccounts.value.filter((s) =>
+    consultantName(s.consultant_id).toLowerCase().includes(q) ||
+    (s.system || '').toLowerCase().includes(q) ||
+    (s.identifier || '').toLowerCase().includes(q)
+  )
+})
+
+const accountPageCount = computed(() => Math.max(1, Math.ceil(searchedAccounts.value.length / ACCOUNT_PAGE_SIZE)))
+
+const pagedAccounts = computed(() => {
+  const start = (accountPage.value - 1) * ACCOUNT_PAGE_SIZE
+  return searchedAccounts.value.slice(start, start + ACCOUNT_PAGE_SIZE)
+})
+
+const accountRangeStart = computed(() => (searchedAccounts.value.length === 0 ? 0 : (accountPage.value - 1) * ACCOUNT_PAGE_SIZE + 1))
+const accountRangeEnd = computed(() => Math.min(searchedAccounts.value.length, accountPage.value * ACCOUNT_PAGE_SIZE))
+
+const accountPageButtons = computed<(number | '…')[]>(() => {
+  const total = accountPageCount.value
+  const current = accountPage.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | '…')[] = [1]
+  if (current > 3) pages.push('…')
+  for (let p = Math.max(2, current - 1); p <= Math.min(total - 1, current + 1); p++) pages.push(p)
+  if (current < total - 2) pages.push('…')
+  pages.push(total)
+  return pages
+})
+
+function goToAccountPage(p: number) {
+  if (!Number.isFinite(p)) return
+  accountPage.value = Math.min(Math.max(1, p), accountPageCount.value)
+}
+
+// Reset to page 1 whenever the search or consultant filter changes
+watch([accountSearch, consultantId], () => { accountPage.value = 1 })
+// Clamp page if the result set shrinks
+watch(accountPageCount, (max) => { if (accountPage.value > max) accountPage.value = max })
 
 // ----- Row menus (teleported, fixed-positioned) -----
 const MENU_WIDTH = 176 // w-44
@@ -514,23 +648,7 @@ function onConsultantComboEnter() {
   if (list.length === 1) return selectConsultantCombo(list[0])
 }
 
-const filteredAssets = computed(() => consultantId.value ? assets.value.filter((a) => a.assigned_to === consultantId.value) : assets.value)
-const filteredAccounts = computed(() => consultantId.value ? accounts.value.filter((s) => s.consultant_id === consultantId.value) : accounts.value)
-
-function consultantName(id: string) { return consultants.value.find((c) => c.id === id)?.full_name || '—' }
-function assetPill(status: string) {
-  switch (status) {
-    case 'assigned': return 'bg-[#0E5A8C] text-white'
-    case 'in_stock': return 'border border-[#A9C4DC] bg-[#E4EEF6] text-ink'
-    case 'maintenance': return 'bg-[#B0761A] text-white'
-    default: return 'bg-[#e5eaf1] text-[#7b8794]'
-  }
-}
-function assetLabel(status: string) {
-  const map: Record<string, string> = { in_stock: 'In Stock', assigned: 'Assigned', maintenance: 'Maintenance', retired: 'Retired' }
-  return map[status] ?? status
-}
-
+// ----- Data loading -----
 onMounted(async () => {
   const { data: cons } = await supabase.from('consultants').select('id, full_name, job_title').order('full_name')
   consultants.value = cons || []
@@ -657,13 +775,13 @@ function openEditAccount(s: any) {
 }
 
 async function saveAccountModal() {
-  // ✅ UPDATED: consultant is only selectable on create; on edit it is fixed
+  // Consultant is only selectable on create; on edit it is fixed
   if (!isEditingAccount.value && !accountForm.value.consultant_id) return showFeedback('Select a consultant.')
 
   if (isEditingAccount.value && editingAccountId.value) {
     const original = editingAccountRow.value
     const payload: any = {
-      consultant_id: accountForm.value.consultant_id, // unchanged from original row
+      consultant_id: accountForm.value.consultant_id,
       system: accountForm.value.system,
       identifier: accountForm.value.identifier.trim() || null,
       status: accountForm.value.status,

@@ -1,163 +1,149 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import { defineComponent, h } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-// Inline placeholder for modules outside MVP scope (Contacts, Performance).
-const PlaceholderView = defineComponent({
-  name: 'PlaceholderView',
-  setup() {
-    return () =>
-      h(
-        'div',
-        {
-          class:
-            'rounded-[16px] border border-line bg-white px-8 py-16 text-center text-sm text-ink-3 shadow-sm',
-        },
-        'This module is outside the MVP scope and will be available in a future release.'
-      )
-  },
-})
-
-// Role-aware landing page
-function homeFor(role: string | null) {
-  return role === 'consultant' ? '/portal' : '/dashboard'
-}
-
-const routes: RouteRecordRaw[] = [
-  // ----- Public -----
-  {
-    path: '/login',
-    name: 'login',
-    component: () => import('@/views/Login.vue'),
-    meta: { public: true },
-  },
-
-  // ----- HR / Admin shell -----
-  {
-    path: '/',
-    component: () => import('@/layouts/AppLayout.vue'),
-    meta: { roles: ['super_admin', 'hrbp'] },
-    children: [
-      { path: '', redirect: '/dashboard' },
-      { path: 'dashboard', name: 'dashboard', component: () => import('@/views/Dashboard.vue') },
-
-      // Consultants module
-      {
-        path: 'consultants',
-        name: 'consultants',
-        component: () => import('@/views/consultants/ConsultantList.vue'),
-      },
-      {
-        path: 'consultants/:id',
-        name: 'consultant-detail',
-        component: () => import('@/views/consultants/ConsultantDetail.vue'),
-      },
-
-      // Outside MVP scope
-      { path: 'contacts', name: 'contacts', component: PlaceholderView },
-      { path: 'performance', name: 'performance', component: PlaceholderView },
-
-      // ✅ Configurations (Separated)
-      {
-        path: 'offboarding-config',
-        name: 'offboarding-config',
-        component: () => import('@/views/config/ConfigList.vue'),
-      },
-      {
-        path: 'onboarding-config',
-        name: 'onboarding-config',
-        component: () => import('@/views/config/OnboardingConfigList.vue'),
-      },
-
-      // ✅ Offboarding Employees
-      {
-        path: 'offboarding-employees',
-        name: 'offboarding-employees',
-        component: () => import('@/views/offboarding/OffboardingList.vue'),
-      },
-      {
-        path: 'offboarding-employees/:id',
-        name: 'offboarding-profile',
-        component: () => import('@/views/offboarding/OffboardingProfile.vue'),
-      },
-
-      // ✅ PHASE 2: Onboarding Records
-      {
-        path: 'onboarding-records',
-        name: 'onboarding-records',
-        component: () => import('@/views/onboarding/OnboardingList.vue'),
-      },
-      {
-        path: 'onboarding-records/:id',
-        name: 'onboarding-profile',
-        component: () => import('@/views/onboarding/OnboardingProfile.vue'),
-      },
-    ],
-  },
-
-  // ----- Consultant portal shell -----
-  {
-    path: '/portal',
-    component: () => import('@/layouts/ConsultantLayout.vue'),
-    meta: { roles: ['consultant'] },
-    children: [
-      { path: '', redirect: '/portal/checklist' },
-      {
-        path: 'checklist',
-        name: 'portal-checklist',
-        component: () => import('@/views/portal/ConsultantChecklist.vue'),
-      },
-      // ✅ PHASE 2: Consultant Onboarding Checklist
-      {
-        path: 'onboarding',
-        name: 'portal-onboarding',
-        component: () => import('@/views/portal/ConsultantOnboarding.vue'),
-      },
-    ],
-  },
-
-  // Fallback: unknown paths redirect based on role
-  { path: '/:pathMatch(.*)*', redirect: '/dashboard' },
-]
+// Layouts
+import AppLayout from '@/layouts/AppLayout.vue'
+import ConsultantLayout from '@/layouts/ConsultantLayout.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
-  scrollBehavior(_to, _from, savedPosition) {
-    return savedPosition || { top: 0 }
-  },
+  routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/Login.vue'),
+      meta: { requiresGuest: true },
+    },
+    // ===== HR Shell (AppLayout) =====
+    {
+      path: '/',
+      component: AppLayout,
+      meta: { requiresAuth: true, role: 'hr' },
+      children: [
+        { path: '', redirect: '/dashboard' },
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: () => import('@/views/Dashboard.vue'),
+        },
+        {
+          path: 'consultants',
+          name: 'consultants',
+          component: () => import('@/views/consultants/ConsultantList.vue'),
+        },
+        {
+          path: 'consultants/:id',
+          name: 'consultant-detail',
+          component: () => import('@/views/consultants/ConsultantDetail.vue'),
+        },
+        {
+          path: 'contacts',
+          name: 'contacts',
+          component: () => import('@/views/Placeholder.vue'),
+          props: { title: 'Contacts' },
+        },
+        {
+          path: 'performance',
+          name: 'performance',
+          component: () => import('@/views/Placeholder.vue'),
+          props: { title: 'Performance' },
+        },
+        // Configurations
+        {
+          path: 'offboarding-config',
+          name: 'offboarding-config',
+          component: () => import('@/views/config/ConfigList.vue'),
+        },
+        {
+          path: 'onboarding-config',
+          name: 'onboarding-config',
+          component: () => import('@/views/config/OnboardingConfigList.vue'),
+        },
+        // Employees / Records
+        {
+          path: 'offboarding-employees',
+          name: 'offboarding-employees',
+          component: () => import('@/views/offboarding/OffboardingList.vue'),
+        },
+        {
+          path: 'offboarding-employees/:id',
+          name: 'offboarding-profile',
+          component: () => import('@/views/offboarding/OffboardingProfile.vue'),
+        },
+        {
+          path: 'onboarding-records',
+          name: 'onboarding-records',
+          component: () => import('@/views/onboarding/OnboardingList.vue'),
+        },
+        {
+          path: 'onboarding-records/:id',
+          name: 'onboarding-profile',
+          component: () => import('@/views/onboarding/OnboardingProfile.vue'),
+        },
+        // ✅ PHASE 3: Assets & Access
+        {
+          path: 'assets-access',
+          name: 'assets-access',
+          component: () => import('@/views/assets/AssetsAccess.vue'),
+        },
+      ],
+    },
+    // ===== Consultant Portal Shell (ConsultantLayout) =====
+    {
+      path: '/portal',
+      component: ConsultantLayout,
+      meta: { requiresAuth: true, role: 'consultant' },
+      children: [
+        { path: '', redirect: '/portal/checklist' },
+        {
+          path: 'checklist',
+          name: 'portal-checklist',
+          component: () => import('@/views/portal/ConsultantChecklist.vue'),
+        },
+        {
+          path: 'onboarding',
+          name: 'portal-onboarding',
+          component: () => import('@/views/portal/ConsultantOnboarding.vue'),
+        },
+      ],
+    },
+    // Catch-all
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/dashboard',
+    },
+  ],
 })
 
-// ----- Auth & Role guard (reload-safe) -----
-router.beforeEach(async (to) => {
+// ✅ FIXED GUARD: loop-proof role handling
+// Any role that is NOT 'consultant' is treated as HR staff (admin, super_admin, hrbp, manager…).
+// Redirects always terminate because the target route passes the same checks.
+router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
+  const isLoggedIn = !!auth.user
+  const isConsultant = auth.role === 'consultant'
 
-  // Wait for session + profile BEFORE any guard decision (kills the F5 race)
-  await auth.init()
-
-  // 1. Public routes
-  if (to.meta.public) {
-    if (auth.user && to.name === 'login') return { path: homeFor(auth.role) }
-    return true
+  // 1) Guest-only pages (e.g. /login)
+  if (to.meta.requiresGuest) {
+    if (isLoggedIn) return next(isConsultant ? '/portal' : '/dashboard')
+    return next()
   }
 
-  // 2. Not signed in
-  if (!auth.user) return { path: '/login' }
-
-  // 3. Session exists but profile row missing → clean sign-out instead of a loop
-  if (!auth.role) {
-    await auth.signOut()
-    return { path: '/login' }
+  // 2) Auth-required pages
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    return next('/login')
   }
 
-  // 4. Role-based access control (with loop breaker)
-  const allowedRoles = to.meta.roles as string[] | undefined
-  if (allowedRoles && !allowedRoles.includes(auth.role)) {
-    const home = homeFor(auth.role)
-    return to.path === home ? true : { path: home }
+  // 3) Role-restricted areas — only bounce the "wrong side", never compare raw role strings
+  if (to.meta.role === 'consultant' && !isConsultant) {
+    return next('/dashboard') // HR staff don't belong in the portal
+  }
+  if (to.meta.role === 'hr' && isConsultant) {
+    return next('/portal') // Consultants don't belong in the HR shell
   }
 
-  return true
+  // 4) Everything else passes (including undefined role while profile loads)
+  return next()
 })
 
 export default router

@@ -1,93 +1,112 @@
 <template>
-  <header class="flex items-center justify-between bg-[#f8fafc] px-8 py-4">
-    <!-- Left: Page Title -->
-    <div>
-      <p class="text-xs font-medium text-[#64748b]">HR Business Partner Portal</p>
-      <h1 class="text-xl font-bold text-[#0f172a]">{{ pageTitle }}</h1>
+  <header class="sticky top-0 z-20 flex h-[76px] items-center justify-between gap-6 bg-white px-8">
+    <!-- ===== Left: portal label + dynamic page title ===== -->
+    <div class="min-w-0">
+      <p class="text-[11px] font-medium uppercase tracking-[.18em] text-ink-3">
+        HR Business Partner Portal
+      </p>
+      <h1 class="mt-0.5 truncate text-xl font-semibold leading-tight text-ink">
+        {{ pageTitle }}
+      </h1>
     </div>
 
-    <!-- Right: User Menu -->
-    <div class="relative">
-      <!-- User Profile Card (Clickable) -->
-      <button
-        type="button"
-        class="flex items-center gap-3 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 transition-colors hover:bg-[#f1f5f9]"
-        :aria-expanded="menuOpen"
-        aria-haspopup="menu"
-        @click="toggleMenu"
-      >
-        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#e2e8f0] text-[#64748b]">
-          <User class="h-4 w-4" />
-        </div>
-        <div class="text-left">
-          <p class="text-sm font-semibold text-[#0f172a]">{{ auth.fullName }}</p>
-          <p class="text-xs text-[#64748b]">{{ formattedRole }} · All Regions</p>
-        </div>
-      </button>
+    <!-- ===== Right: Notifications + Account side by side ===== -->
+    <div class="flex flex-shrink-0 items-center gap-3">
+      <!-- Notifications -->
+      <NotificationBell />
 
-      <!-- Dropdown Menu (appears on click) -->
-      <div
-        v-if="menuOpen"
-        role="menu"
-        class="absolute right-0 top-[calc(100%+8px)] z-40 w-48 overflow-hidden rounded-lg border border-[#e2e8f0] bg-white shadow-lg"
-      >
+      <!-- Account card (default state) + dropdown (clicked state) -->
+      <div class="relative">
         <button
           type="button"
-          role="menuitem"
-          class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-[#64748b] transition-colors hover:bg-[#f1f5f9]"
-          @click="handleSignOut"
+          class="flex items-center gap-3 rounded-[12px] border-l border-[#e4eaf0] bg-white py-2.5 pl-3 pr-4 text-left shadow-sm transition-colors duration-150 hover:bg-[#f6f9fc] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          :aria-expanded="menuOpen"
+          aria-haspopup="menu"
+          @click="menuOpen = !menuOpen"
         >
-          <LogOut class="h-4 w-4" />
-          Sign out
+          <span class="grid h-10 w-10 flex-shrink-0 place-items-center rounded-full bg-[#e8edf3] text-[#94a3b8]">
+            <User class="h-5 w-5" />
+          </span>
+          <span class="flex min-w-0 flex-col">
+            <span class="truncate text-[14px] font-bold leading-[1.3] text-ink">
+              {{ auth.fullName }}
+            </span>
+            <span class="truncate text-[12.5px] leading-[1.4] text-[#94a3b8]">
+              {{ formattedRole }} · All Regions
+            </span>
+          </span>
         </button>
-      </div>
 
-      <!-- Click-away layer -->
-      <div v-if="menuOpen" class="fixed inset-0 z-30" @click="menuOpen = false"></div>
+        <!-- Clicked state: sign-out panel below the card -->
+        <div
+          v-if="menuOpen"
+          role="menu"
+          aria-label="Account menu"
+          class="absolute right-0 top-[calc(100%+8px)] z-40 w-[240px] overflow-hidden rounded-[12px] border border-[#e4eaf0] bg-white py-1.5 shadow-lg"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            class="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13.5px] font-medium text-ink-2 transition-colors hover:bg-[#f6f9fc]"
+            @click="handleSignOut"
+          >
+            <LogOut class="h-4 w-4" />
+            Sign out
+          </button>
+        </div>
+
+        <!-- Click-away layer -->
+        <div v-if="menuOpen" class="fixed inset-0 z-30" @click="menuOpen = false"></div>
+      </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { User, LogOut } from 'lucide-vue-next'
+import { LogOut, User } from 'lucide-vue-next'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+
 const menuOpen = ref(false)
 
+// ✅ Aligned with the DB enum (super_admin | hrbp | consultant) + legacy aliases
+const formattedRole = computed(() => {
+  const map: Record<string, string> = {
+    super_admin: 'Super Admin',
+    hrbp: 'HRBP',
+    consultant: 'Consultant',
+    admin: 'Super Admin',
+    hr: 'HRBP',
+  }
+  return map[auth.role || ''] || 'HRBP'
+})
+
+// ✅ Dynamic page title (includes Phase 3 route)
 const pageTitle = computed(() => {
-  const titles: Record<string, string> = {
+  const map: Record<string, string> = {
     dashboard: 'Dashboard',
     consultants: 'Consultants',
     'consultant-detail': 'Consultant Profile',
     contacts: 'Contacts',
     performance: 'Performance',
     'offboarding-config': 'Offboarding Configurations',
+    'onboarding-config': 'Onboarding Configurations',
     'offboarding-employees': 'Offboarding Employees',
     'offboarding-profile': 'Offboarding Profile',
-    'onboarding-config': 'Onboarding Configurations',
     'onboarding-records': 'Onboarding Employees',
     'onboarding-profile': 'Onboarding Profile',
+    'assets-access': 'Assets & Access',
+    'portal-checklist': 'My Offboarding',
+    'portal-onboarding': 'My Onboarding',
   }
-  return titles[route.name as string] || 'Dashboard'
+  return map[route.name as string] || 'HR Portal'
 })
-
-const formattedRole = computed(() => {
-  const map: Record<string, string> = {
-    super_admin: 'Super Admin',
-    hrbp: 'HRBP',
-    consultant: 'Consultant',
-  }
-  return map[auth.role || ''] || 'User'
-})
-
-function toggleMenu() {
-  menuOpen.value = !menuOpen.value
-}
 
 async function handleSignOut() {
   menuOpen.value = false

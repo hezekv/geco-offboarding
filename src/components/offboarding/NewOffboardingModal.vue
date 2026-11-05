@@ -152,7 +152,7 @@ async function loadOptions() {
     .order('full_name')
 
   consultants.value = (cons || []).filter((c: any) => {
-    // ✅ PHASE 1 (Step 1.9-D): offboarded consultants are ineligible
+    // offboarded consultants are ineligible
     if (c.status === 'offboarded') return false
 
     const hasActive = (c.offboardings || []).some((ob: any) =>
@@ -187,12 +187,12 @@ async function snapshotConfigs(offboardingId: string) {
     .select(`
       id, name, description, sort_order,
       config_sub_requirements (
-        id, title, instructions, resource_url, is_disabled, sort_order,
+        id, title, instructions, resource_url, is_disabled, sort_order, auto_source,
         config_files (id, storage_path, file_name, file_type, file_size)
       )
     `)
     .eq('is_active', true)
-    .eq('kind', 'offboarding') // ✅ PHASE 2: strictly snapshot offboarding templates
+    .eq('kind', 'offboarding') // strictly snapshot offboarding templates
     .order('sort_order', { ascending: true })
 
   if (error) throw error
@@ -221,6 +221,7 @@ async function snapshotConfigs(offboardingId: string) {
           resource_url: s.resource_url,
           status: 'pending',
           sort_order: s.sort_order,
+          auto_source: s.auto_source || null, // ✅ PHASE 3: Carry automation rule
         })
         .select()
         .single()
@@ -276,7 +277,7 @@ async function handleCreate() {
 
     await snapshotConfigs(ob.id)
 
-    // ✅ AUDIT: log record creation
+    // AUDIT: log record creation
     logActivity('offboarding.created', 'offboarding', ob.id, { ob_ref: ob.ob_ref })
 
     emit('saved')

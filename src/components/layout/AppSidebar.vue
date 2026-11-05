@@ -1,6 +1,6 @@
 <template>
   <aside class="flex h-screen w-56 flex-shrink-0 flex-col bg-sidebar">
-    <!-- Brand Area (no truncate — text wraps per design) -->
+    <!-- Brand Area -->
     <div class="mx-5 mt-3 p-3 flex items-center gap-3 border-b border-[#8fa0b3]">
       <div class="grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-white text-sidebar">
         <BriefcaseBusiness class="h-6 w-6" />
@@ -40,7 +40,7 @@
 
         <!-- ===== Hierarchical groups (parent + children) ===== -->
         <li v-for="group in navGroups" :key="group.key">
-          <!-- Parent row: caret + icon + label -->
+          <!-- Parent row -->
           <button
             type="button"
             class="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm leading-snug transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7dd3fc]"
@@ -63,7 +63,7 @@
             />
           </button>
 
-          <!-- Children rows: indented, icon + label -->
+          <!-- Children rows -->
           <ul v-show="isGroupOpen(group.key)" class="mt-1 flex flex-col gap-1 pl-2" :aria-label="group.label">
             <li v-for="child in group.children" :key="child.to">
               <router-link
@@ -101,16 +101,15 @@ import {
   UserMinus,
   ClipboardList,
   ChevronRight,
-  LayoutDashboard
+  Package, // ✅ PHASE 3: Asset catalog icon
 } from 'lucide-vue-next'
-
 
 const route = useRoute()
 
 type NavItem = {
   label: string
   to: string
-  icon: string | Component // string = sprite id, Component = Lucide
+  icon: string | Component
 }
 
 type NavGroup = {
@@ -122,10 +121,12 @@ type NavGroup = {
 
 // ----- Standalone links -----
 const standaloneItems: NavItem[] = [
-  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+  { label: 'Dashboard', to: '/dashboard', icon: 'i-sliders' },
   { label: 'Consultants', to: '/consultants', icon: 'i-badge-check' },
   { label: 'Contacts', to: '/contacts', icon: 'i-edit' },
   { label: 'Performance', to: '/performance', icon: 'i-clock' },
+  // ✅ PHASE 3: New standalone entry
+  { label: 'Assets & Access', to: '/assets-access', icon: Package },
 ]
 
 // ----- Hierarchical groups -----
@@ -140,8 +141,8 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    key: 'transitions',
-    label: 'Transitions',
+    key: 'employees',
+    label: 'Employees',
     icon: Users,
     children: [
       { label: 'Offboarding Employees', to: '/offboarding-employees', icon: UserMinus },
@@ -150,7 +151,7 @@ const navGroups: NavGroup[] = [
   },
 ]
 
-// ----- Expand / collapse state (both open by default, like the reference) -----
+// ----- Expand / collapse state (collapsed by default) -----
 const expandedGroups = ref<Record<string, boolean>>({
   configurations: false,
   employees: false,

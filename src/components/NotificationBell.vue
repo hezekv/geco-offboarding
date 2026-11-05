@@ -2,7 +2,7 @@
   <div class="relative">
     <button
       type="button"
-      class="relative grid h-9 w-9 place-items-center rounded-[10px] border border-line bg-white text-ink-2 transition-colors hover:bg-[#f2f6fa]"
+      class="relative grid h-9 w-9 place-items-center bg-white text-ink-2 transition-colors hover:bg-[#f2f6fa]"
       :aria-expanded="open"
       aria-haspopup="true"
       aria-label="Notifications"

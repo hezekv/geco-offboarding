@@ -32,6 +32,73 @@
               <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Resource URL</span>
               <input v-model="sub.resourceUrl" type="url" :class="fieldCls + ' text-brand'" placeholder="https://hr.geco.asia/..." />
             </label>
+
+            <!-- ✅ PHASE 3: Automation Rule — INPUT combobox (matches your HS-UI reference) -->
+            <label class="mb-5 block">
+              <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Automation Rule (auto_source)</span>
+              <div class="relative" @click.stop>
+                <input
+                  type="text"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  :aria-expanded="sub.comboOpen"
+                  :class="fieldCls + ' pr-10'"
+                  :value="sub.comboText"
+                  placeholder="Manual (no automation)"
+                  @focus="onComboFocus(sub)"
+                  @input="onComboInput(sub, $event)"
+                  @blur="onComboBlur(sub)"
+                  @keydown.down.prevent="onComboFocus(sub)"
+                  @keydown.esc.prevent="onComboEscape(sub)"
+                  @keydown.enter.prevent="onComboEnter(sub)"
+                />
+                <button
+                  type="button"
+                  tabindex="-1"
+                  aria-label="Toggle automation rule options"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 transition-colors hover:text-ink"
+                  @mousedown.prevent
+                  @click="onComboToggle(sub)"
+                >
+                  <ChevronDown
+                    class="h-4 w-4 transition-transform duration-200"
+                    :class="sub.comboOpen ? 'rotate-180' : ''"
+                  />
+                </button>
+                <div
+                  v-show="sub.comboOpen"
+                  class="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-[10px] border border-line bg-white p-1 shadow-xl"
+                  role="listbox"
+                >
+                  <div
+                    v-for="opt in comboOptionsFor(sub)"
+                    :key="opt.value"
+                    class="cursor-pointer rounded-lg px-4 py-2.5 text-sm transition-colors hover:bg-[#f2f6fa] focus:bg-[#e9eef5] focus:outline-none"
+                    role="option"
+                    tabindex="0"
+                    :aria-selected="sub.autoSource === opt.value"
+                    @mousedown.prevent
+                    @click="selectCombo(sub, opt)"
+                    @keydown.enter.prevent="selectCombo(sub, opt)"
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <span
+                        class="flex-1"
+                        :class="sub.autoSource === opt.value ? 'font-semibold text-ink' : 'text-ink-2'"
+                      >{{ opt.label }}</span>
+                      <Check v-if="sub.autoSource === opt.value" class="h-4 w-4 flex-shrink-0 text-brand" />
+                    </div>
+                  </div>
+                  <div v-if="!comboOptionsFor(sub).length" class="px-4 py-3 text-[13px] text-ink-3">
+                    No matching rules — pick from the list or clear the field.
+                  </div>
+                </div>
+              </div>
+              <span class="mt-1.5 block text-[11.5px] leading-[1.4] text-ink-4">
+                Type to search or pick a rule; it auto-completes this task on offboarding checklists once its condition is met.
+              </span>
+            </label>
+
             <div class="mb-5">
               <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Files to Send Consultant</span>
               <ul v-if="sub.files.length" class="mb-3 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-3">
@@ -77,10 +144,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatFileSize, fileKind } from '@/lib/utils'
+import { ChevronDown, Check } from 'lucide-vue-next'
 
 const props = defineProps<{ open: boolean; editId?: string | null; offboardingId: string }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved'): void }>()
@@ -89,6 +157,90 @@ const auth = useAuthStore()
 const isEdit = computed(() => !!props.editId)
 
 const fieldCls = 'w-full rounded-[10px] border border-line bg-white px-[14px] py-[11px] text-sm leading-[1.45] text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-ink-3/75 hover:border-[#b9c8d8] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]'
+
+// ✅ PHASE 3: Predefined automation rules for the auto_source combobox
+const AUTO_SOURCE_OPTIONS = [
+  { value: 'manual', label: 'Manual (no automation)' },
+  { value: 'assets:returned_all', label: 'assets:returned_all — all assigned assets returned' },
+  { value: 'accounts:revoked_all', label: 'accounts:revoked_all — all system accounts revoked' },
+]
+
+function labelFor(value: string | null): string {
+  if (!value || value === 'manual') return 'Manual (no automation)'
+  const opt = AUTO_SOURCE_OPTIONS.find((o) => o.value === value)
+  if (opt) return opt.label
+  return `${value} (custom legacy value)`
+}
+
+function comboOptions(sub: any) {
+  const base = [...AUTO_SOURCE_OPTIONS]
+  if (sub.autoSource && !base.some((o) => o.value === sub.autoSource)) {
+    base.push({ value: sub.autoSource, label: labelFor(sub.autoSource) })
+  }
+  return base
+}
+
+function comboOptionsFor(sub: any) {
+  const all = comboOptions(sub)
+  if (!sub.comboEditing) return all
+  const q = (sub.comboText || '').trim().toLowerCase()
+  if (!q) return all
+  return all.filter((o) => o.label.toLowerCase().includes(q))
+}
+
+// --- Combobox interactions ---
+function onComboFocus(sub: any) {
+  sub.comboEditing = true
+  sub.comboOpen = true
+}
+function onComboInput(sub: any, e: Event) {
+  sub.comboText = (e.target as HTMLInputElement).value
+  sub.comboEditing = true
+  sub.comboOpen = true
+}
+function onComboToggle(sub: any) {
+  if (sub.comboOpen) { closeCombo(sub); return }
+  sub.comboEditing = false
+  sub.comboText = labelFor(sub.autoSource)
+  sub.comboOpen = true
+}
+function selectCombo(sub: any, opt: { value: string; label: string }) {
+  sub.autoSource = opt.value
+  sub.comboText = opt.label
+  sub.comboEditing = false
+  sub.comboOpen = false
+}
+function closeCombo(sub: any) {
+  const text = (sub.comboText || '').trim()
+  const exact = comboOptions(sub).find((o) => o.label.toLowerCase() === text.toLowerCase())
+  if (exact) {
+    sub.autoSource = exact.value
+    sub.comboText = exact.label
+  } else if (!text) {
+    sub.autoSource = 'manual'
+    sub.comboText = labelFor('manual')
+  } else {
+    sub.comboText = labelFor(sub.autoSource) // discard invalid free text
+  }
+  sub.comboEditing = false
+  sub.comboOpen = false
+}
+function onComboBlur(sub: any) { closeCombo(sub) }
+function onComboEscape(sub: any) {
+  sub.comboText = labelFor(sub.autoSource)
+  sub.comboEditing = false
+  sub.comboOpen = false
+}
+function onComboEnter(sub: any) {
+  const list = comboOptionsFor(sub)
+  const text = (sub.comboText || '').trim().toLowerCase()
+  const exact = list.find((o) => o.label.toLowerCase() === text)
+  if (exact) return selectCombo(sub, exact)
+  if (list.length === 1) return selectCombo(sub, list[0])
+}
+function handleOutsideClick() {
+  subReqs.value.forEach((s) => { if (s.comboOpen) closeCombo(s) })
+}
 
 const saving = ref(false)
 const nameError = ref('')
@@ -101,13 +253,39 @@ const uploadRefs = new Map<number, HTMLInputElement>()
 
 let keySeq = 0
 function newSub() {
-  return { key: ++keySeq, id: undefined as string | undefined, name: '', instructions: '', resourceUrl: '', is_disabled: false, files: [] as any[], uploading: false }
+  return {
+    key: ++keySeq,
+    id: undefined as string | undefined,
+    name: '',
+    instructions: '',
+    resourceUrl: '',
+    autoSource: 'manual',
+    comboText: labelFor('manual'),
+    comboOpen: false,
+    comboEditing: false,
+    is_disabled: false,
+    files: [] as any[],
+    uploading: false,
+  }
 }
 function setUploadRef(key: number, el: any) { if (el) uploadRefs.set(key, el as HTMLInputElement) }
 function triggerUpload(sub: any) { uploadRefs.get(sub.key)?.click() }
 
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick)
+})
+
 watch(() => props.open, async (isOpen) => {
-  if (!isOpen) { document.body.style.overflow = ''; window.removeEventListener('keydown', onEsc); return }
+  if (!isOpen) {
+    document.body.style.overflow = ''
+    window.removeEventListener('keydown', onEsc)
+    subReqs.value.forEach((s) => { s.comboOpen = false; s.comboEditing = false })
+    return
+  }
   form.value = { name: '', description: '' }
   subReqs.value = [newSub()]
   removedSubIds.value = []
@@ -124,14 +302,27 @@ watch(() => props.open, async (isOpen) => {
 async function loadReq(id: string) {
   const { data, error } = await supabase
     .from('offboarding_requirements')
-    .select(`id, name, description, offboarding_sub_requirements (id, title, instructions, resource_url, status, sort_order, offboarding_files (id, file_name, file_type, file_size, storage_path))`)
+    .select(`id, name, description, offboarding_sub_requirements (id, title, instructions, resource_url, auto_source, status, sort_order, offboarding_files (id, file_name, file_type, file_size, storage_path))`)
     .eq('id', id).single()
 
   if (error || !data) { console.error('Error loading req:', error); return }
   form.value.name = data.name || ''
   form.value.description = data.description || ''
   const subs = (data.offboarding_sub_requirements || []).slice().sort((a: any, b: any) => a.sort_order - b.sort_order)
-  subReqs.value = subs.length ? subs.map((s: any) => ({ key: ++keySeq, id: s.id, name: s.title, instructions: s.instructions || '', resourceUrl: s.resource_url || '', is_disabled: s.status === 'disabled', files: (s.offboarding_files || []).map((f: any) => ({ ...f })), uploading: false })) : [newSub()]
+  subReqs.value = subs.length ? subs.map((s: any) => ({
+    key: ++keySeq,
+    id: s.id,
+    name: s.title,
+    instructions: s.instructions || '',
+    resourceUrl: s.resource_url || '',
+    autoSource: s.auto_source || 'manual',
+    comboText: labelFor(s.auto_source),
+    comboOpen: false,
+    comboEditing: false,
+    is_disabled: s.status === 'disabled',
+    files: (s.offboarding_files || []).map((f: any) => ({ ...f })),
+    uploading: false,
+  })) : [newSub()]
 }
 
 function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') emit('close') }
@@ -178,15 +369,16 @@ async function save() {
 
     for (let i = 0; i < subReqs.value.length; i++) {
       const s = subReqs.value[i]
-      // ✅ FIX 1 & 2: Explicitly cast the status type to satisfy strict TypeScript/Supabase types
-      const payload = { 
-        title: s.name.trim() || 'Untitled', 
-        instructions: s.instructions || null, 
-        resource_url: s.resourceUrl || null, 
-        status: (s.is_disabled ? 'disabled' : 'pending') as 'pending' | 'completed' | 'disabled', 
-        sort_order: i 
+      const payload = {
+        title: s.name.trim() || 'Untitled',
+        instructions: s.instructions || null,
+        resource_url: s.resourceUrl || null,
+        // ✅ PHASE 3: 'manual' (or empty) saves as NULL; real rules save as-is
+        auto_source: !s.autoSource || s.autoSource === 'manual' ? null : s.autoSource,
+        status: (s.is_disabled ? 'disabled' : 'pending') as 'pending' | 'completed' | 'disabled',
+        sort_order: i,
       }
-      
+
       let subId = s.id
       if (subId) { const { error } = await supabase.from('offboarding_sub_requirements').update(payload).eq('id', subId); if (error) throw error }
       else { const { data, error } = await supabase.from('offboarding_sub_requirements').insert({ ...payload, offboarding_requirement_id: reqId }).select().single(); if (error) throw error; subId = data.id }

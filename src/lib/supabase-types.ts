@@ -44,6 +44,56 @@ export type Database = {
         }
         Relationships: []
       }
+      assets: {
+        Row: {
+          asset_tag: string
+          assigned_at: string | null
+          assigned_to: string | null
+          category: string
+          created_at: string
+          id: string
+          model: string | null
+          notes: string | null
+          returned_at: string | null
+          serial: string | null
+          status: string
+        }
+        Insert: {
+          asset_tag: string
+          assigned_at?: string | null
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          notes?: string | null
+          returned_at?: string | null
+          serial?: string | null
+          status?: string
+        }
+        Update: {
+          asset_tag?: string
+          assigned_at?: string | null
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          model?: string | null
+          notes?: string | null
+          returned_at?: string | null
+          serial?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_files: {
         Row: {
           created_at: string
@@ -145,6 +195,7 @@ export type Database = {
       }
       config_sub_requirements: {
         Row: {
+          auto_source: string | null
           created_at: string
           id: string
           instructions: string | null
@@ -156,6 +207,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_source?: string | null
           created_at?: string
           id?: string
           instructions?: string | null
@@ -167,6 +219,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_source?: string | null
           created_at?: string
           id?: string
           instructions?: string | null
@@ -418,6 +471,7 @@ export type Database = {
       }
       offboarding_sub_requirements: {
         Row: {
+          auto_source: string | null
           completed_at: string | null
           completed_by: string | null
           created_at: string
@@ -431,6 +485,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_source?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
@@ -444,6 +499,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_source?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
@@ -770,6 +826,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      system_accounts: {
+        Row: {
+          consultant_id: string
+          created_at: string
+          id: string
+          identifier: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          status: string
+          system: string
+        }
+        Insert: {
+          consultant_id: string
+          created_at?: string
+          id?: string
+          identifier?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          system: string
+        }
+        Update: {
+          consultant_id?: string
+          created_at?: string
+          id?: string
+          identifier?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          system?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_accounts_consultant_id_fkey"
+            columns: ["consultant_id"]
+            isOneToOne: false
+            referencedRelation: "consultants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

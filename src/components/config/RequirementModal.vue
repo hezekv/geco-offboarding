@@ -92,6 +92,72 @@
               />
             </label>
 
+            <!-- ✅ PHASE 3: Automation Rule — INPUT combobox (matches your HS-UI reference) -->
+            <label class="mb-5 block">
+              <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Automation Rule (auto_source)</span>
+              <div class="relative" @click.stop>
+                <input
+                  type="text"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  :aria-expanded="sub.comboOpen"
+                  :class="fieldCls + ' pr-10'"
+                  :value="sub.comboText"
+                  placeholder="Manual (no automation)"
+                  @focus="onComboFocus(sub)"
+                  @input="onComboInput(sub, $event)"
+                  @blur="onComboBlur(sub)"
+                  @keydown.down.prevent="onComboFocus(sub)"
+                  @keydown.esc.prevent="onComboEscape(sub)"
+                  @keydown.enter.prevent="onComboEnter(sub)"
+                />
+                <button
+                  type="button"
+                  tabindex="-1"
+                  aria-label="Toggle automation rule options"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 transition-colors hover:text-ink"
+                  @mousedown.prevent
+                  @click="onComboToggle(sub)"
+                >
+                  <ChevronDown
+                    class="h-4 w-4 transition-transform duration-200"
+                    :class="sub.comboOpen ? 'rotate-180' : ''"
+                  />
+                </button>
+                <div
+                  v-show="sub.comboOpen"
+                  class="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-[10px] border border-line bg-white p-1 shadow-xl"
+                  role="listbox"
+                >
+                  <div
+                    v-for="opt in comboOptionsFor(sub)"
+                    :key="opt.value"
+                    class="cursor-pointer rounded-lg px-4 py-2.5 text-sm transition-colors hover:bg-[#f2f6fa] focus:bg-[#e9eef5] focus:outline-none"
+                    role="option"
+                    tabindex="0"
+                    :aria-selected="sub.autoSource === opt.value"
+                    @mousedown.prevent
+                    @click="selectCombo(sub, opt)"
+                    @keydown.enter.prevent="selectCombo(sub, opt)"
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <span
+                        class="flex-1"
+                        :class="sub.autoSource === opt.value ? 'font-semibold text-ink' : 'text-ink-2'"
+                      >{{ opt.label }}</span>
+                      <Check v-if="sub.autoSource === opt.value" class="h-4 w-4 flex-shrink-0 text-brand" />
+                    </div>
+                  </div>
+                  <div v-if="!comboOptionsFor(sub).length" class="px-4 py-3 text-[13px] text-ink-3">
+                    No matching rules — pick from the list or clear the field.
+                  </div>
+                </div>
+              </div>
+              <span class="mt-1.5 block text-[11.5px] leading-[1.4] text-ink-4">
+                Type to search or pick a rule; it auto-completes this task on offboarding checklists once its condition is met.
+              </span>
+            </label>
+
             <!-- Files -->
             <div class="mb-5">
               <span class="mb-2 block text-xs font-medium tracking-[.2px] text-ink-3">Files to Send Consultant</span>
@@ -128,7 +194,6 @@
                   </button>
                 </li>
               </ul>
-
               <!-- Dropzone -->
               <div
                 class="grid cursor-pointer justify-items-center gap-2.5 rounded-xl border-[1.5px] border-dashed border-[#c6d3e0] bg-[#f8fafc] px-4 py-[26px] text-center transition-colors hover:border-brand hover:bg-[#f2f6fa]"
@@ -203,25 +268,108 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { formatFileSize, fileKind } from '@/lib/utils'
+import { ChevronDown, Check } from 'lucide-vue-next'
 
-// ✅ PHASE 2: Added optional 'kind' prop
-const props = defineProps<{ 
-  open: boolean; 
-  editId?: string | null; 
-  kind?: 'offboarding' | 'onboarding' 
+const props = defineProps<{
+  open: boolean
+  editId?: string | null
+  kind?: 'offboarding' | 'onboarding'
 }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved'): void }>()
 
 const auth = useAuthStore()
-
 const isEdit = computed(() => !!props.editId)
 
 const fieldCls =
   'w-full rounded-[10px] border border-line bg-white px-[14px] py-[11px] text-sm leading-[1.45] text-ink transition-[border-color,box-shadow] duration-150 placeholder:text-ink-3/75 hover:border-[#b9c8d8] focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-[rgba(18,96,142,.18)]'
+
+// ✅ PHASE 3: Predefined automation rules for the auto_source combobox
+const AUTO_SOURCE_OPTIONS = [
+  { value: 'manual', label: 'Manual (no automation)' },
+  { value: 'assets:returned_all', label: 'assets:returned_all — all assigned assets returned' },
+  { value: 'accounts:revoked_all', label: 'accounts:revoked_all — all system accounts revoked' },
+]
+
+function labelFor(value: string | null): string {
+  if (!value || value === 'manual') return 'Manual (no automation)'
+  const opt = AUTO_SOURCE_OPTIONS.find((o) => o.value === value)
+  if (opt) return opt.label
+  return `${value} (custom legacy value)`
+}
+
+function comboOptions(sub: any) {
+  const base = [...AUTO_SOURCE_OPTIONS]
+  if (sub.autoSource && !base.some((o) => o.value === sub.autoSource)) {
+    base.push({ value: sub.autoSource, label: labelFor(sub.autoSource) })
+  }
+  return base
+}
+
+function comboOptionsFor(sub: any) {
+  const all = comboOptions(sub)
+  if (!sub.comboEditing) return all
+  const q = (sub.comboText || '').trim().toLowerCase()
+  if (!q) return all
+  return all.filter((o) => o.label.toLowerCase().includes(q))
+}
+
+// --- Combobox interactions ---
+function onComboFocus(sub: any) {
+  sub.comboEditing = true
+  sub.comboOpen = true
+}
+function onComboInput(sub: any, e: Event) {
+  sub.comboText = (e.target as HTMLInputElement).value
+  sub.comboEditing = true
+  sub.comboOpen = true
+}
+function onComboToggle(sub: any) {
+  if (sub.comboOpen) { closeCombo(sub); return }
+  sub.comboEditing = false
+  sub.comboText = labelFor(sub.autoSource)
+  sub.comboOpen = true
+}
+function selectCombo(sub: any, opt: { value: string; label: string }) {
+  sub.autoSource = opt.value
+  sub.comboText = opt.label
+  sub.comboEditing = false
+  sub.comboOpen = false
+}
+function closeCombo(sub: any) {
+  const text = (sub.comboText || '').trim()
+  const exact = comboOptions(sub).find((o) => o.label.toLowerCase() === text.toLowerCase())
+  if (exact) {
+    sub.autoSource = exact.value
+    sub.comboText = exact.label
+  } else if (!text) {
+    sub.autoSource = 'manual'
+    sub.comboText = labelFor('manual')
+  } else {
+    sub.comboText = labelFor(sub.autoSource) // discard invalid free text
+  }
+  sub.comboEditing = false
+  sub.comboOpen = false
+}
+function onComboBlur(sub: any) { closeCombo(sub) }
+function onComboEscape(sub: any) {
+  sub.comboText = labelFor(sub.autoSource)
+  sub.comboEditing = false
+  sub.comboOpen = false
+}
+function onComboEnter(sub: any) {
+  const list = comboOptionsFor(sub)
+  const text = (sub.comboText || '').trim().toLowerCase()
+  const exact = list.find((o) => o.label.toLowerCase() === text)
+  if (exact) return selectCombo(sub, exact)
+  if (list.length === 1) return selectCombo(sub, list[0])
+}
+function handleOutsideClick() {
+  subReqs.value.forEach((s) => { if (s.comboOpen) closeCombo(s) })
+}
 
 const saving = ref(false)
 const nameError = ref('')
@@ -240,6 +388,10 @@ function newSub() {
     name: '',
     instructions: '',
     resourceUrl: '',
+    autoSource: 'manual',
+    comboText: labelFor('manual'),
+    comboOpen: false,
+    comboEditing: false,
     is_disabled: false,
     files: [] as any[],
     uploading: false,
@@ -254,11 +406,20 @@ function triggerUpload(sub: any) {
   uploadRefs.get(sub.key)?.click()
 }
 
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick)
+})
+
 // Reset / load whenever the modal opens
 watch(() => props.open, async (isOpen) => {
   if (!isOpen) {
     document.body.style.overflow = ''
     window.removeEventListener('keydown', onEsc)
+    subReqs.value.forEach((s) => { s.comboOpen = false; s.comboEditing = false })
     return
   }
 
@@ -281,7 +442,7 @@ async function loadConfig(id: string) {
     .select(`
       id, name, description,
       config_sub_requirements (
-        id, title, instructions, resource_url, is_disabled, sort_order,
+        id, title, instructions, resource_url, is_disabled, sort_order, auto_source,
         config_files (id, file_name, file_type, file_size, storage_path)
       )
     `)
@@ -304,6 +465,10 @@ async function loadConfig(id: string) {
         name: s.title,
         instructions: s.instructions || '',
         resourceUrl: s.resource_url || '',
+        autoSource: s.auto_source || 'manual',
+        comboText: labelFor(s.auto_source),
+        comboOpen: false,
+        comboEditing: false,
         is_disabled: s.is_disabled,
         files: (s.config_files || []).map((f: any) => ({ ...f })),
         uploading: false,
@@ -395,7 +560,7 @@ async function save() {
           description: form.value.description || null,
           is_active: true,
           created_by: auth.user?.id,
-          kind: props.kind || 'offboarding', // ✅ PHASE 2: Use the passed kind prop
+          kind: props.kind || 'offboarding',
         })
         .select()
         .single()
@@ -410,6 +575,8 @@ async function save() {
         title: s.name.trim() || 'Untitled sub-requirement',
         instructions: s.instructions || null,
         resource_url: s.resourceUrl || null,
+        // ✅ PHASE 3: 'manual' (or empty) saves as NULL; real rules save as-is
+        auto_source: !s.autoSource || s.autoSource === 'manual' ? null : s.autoSource,
         is_disabled: !!s.is_disabled,
         sort_order: i,
       }
@@ -444,7 +611,7 @@ async function save() {
       }
     }
 
-    // Delete removed sub-requirements (DB files cascade)
+    // Delete removed sub-requirements
     for (const id of removedSubIds.value) {
       await supabase.from('config_sub_requirements').delete().eq('id', id)
     }

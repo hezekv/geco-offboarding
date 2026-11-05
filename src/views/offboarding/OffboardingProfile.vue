@@ -15,6 +15,7 @@
       Back to list
     </router-link>
 
+    <!-- ===== Hero card ===== -->
     <section class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
       <div class="flex flex-wrap items-start justify-between gap-6">
         <div class="flex items-start gap-[18px]">
@@ -62,6 +63,30 @@
       </dl>
     </section>
 
+    <!-- ===== ✅ PHASE 3: Assets & Access chips ===== -->
+    <section v-if="assets.length || accounts.length" class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
+      <h3 class="text-[15px] font-semibold text-ink">Assets & Access</h3>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <span
+          v-for="a in assets"
+          :key="a.id"
+          class="inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-xs font-medium"
+          :class="a.status === 'assigned' ? 'border-[#A9C4DC] bg-[#E4EEF6] text-ink' : 'border-transparent bg-[#e5eaf1] text-[#7b8794]'"
+        >
+          {{ (a.category || '').replace('_', ' ') }} · {{ a.asset_tag }} · {{ a.status === 'assigned' ? 'Assigned' : 'Returned' }}
+        </span>
+        <span
+          v-for="s in accounts"
+          :key="s.id"
+          class="inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-xs font-medium"
+          :class="s.status === 'active' ? 'border-[#e4b4b4] bg-[#FDF5F6] text-[#B3373F]' : 'border-transparent bg-[#e5eaf1] text-[#7b8794]'"
+        >
+          {{ (s.system || '').replace(/_/g, ' ') }} · {{ s.status === 'active' ? 'Active' : 'Revoked' }}
+        </span>
+      </div>
+    </section>
+
+    <!-- ===== Metrics grid ===== -->
     <section class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
       <div class="rounded-xl border border-brand bg-brand px-5 pb-5 pt-4 shadow-sm">
         <div class="flex items-start justify-between gap-3">
@@ -97,6 +122,7 @@
       </div>
     </section>
 
+    <!-- ===== Requirements ===== -->
     <section class="flex flex-col gap-5">
       <div v-for="req in requirements" :key="req.id" class="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm">
         <div class="flex flex-wrap items-start justify-between gap-4">
@@ -108,10 +134,8 @@
             <p v-if="req.description" class="mt-1.5 max-w-[70ch] text-sm leading-relaxed text-[#64758b]">{{ req.description }}</p>
           </div>
           <div v-if="!isLocked" class="ml-auto flex flex-wrap gap-2.5">
-            <!-- ✅ UPDATED: Edit Button triggers Modal -->
             <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#0D5F8F] transition-colors hover:bg-[#0D5F8F] hover:text-white" @click="openReqEdit(req)">Edit <AppIcon name="i-edit" class="h-3.5 w-3.5" /></button>
             <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-3.5 py-2.5 text-[13px] font-medium text-[#c14b4b] transition-colors hover:bg-[#C24152] hover:text-white" @click="handleReqDelete(req)">Delete <AppIcon name="i-trash" class="h-3.5 w-3.5" /></button>
-            <!-- ✅ UPDATED: Add Task Button triggers Modal -->
             <button type="button" class="inline-flex items-center gap-2 rounded-[10px] border border-[#0D5F8F] bg-[#0D5F8F] px-3.5 py-2.5 text-[13px] font-medium text-white transition-colors hover:border-[#198754] hover:bg-[#198754]" @click="openReqAddSub(req)">Add Task <AppIcon name="i-plus" class="h-3.5 w-3.5" /></button>
           </div>
         </div>
@@ -187,13 +211,13 @@
       {{ feedbackMessage }}
     </div>
 
-    <!-- ✅ NEW: Offboarding Requirement Modal -->
-    <OffboardingRequirementModal 
-      :open="showReqModal" 
-      :edit-id="editingReqId" 
-      :offboarding-id="offboardingId" 
-      @close="showReqModal = false" 
-      @saved="handleReqSaved" 
+    <!-- Offboarding Requirement Modal -->
+    <OffboardingRequirementModal
+      :open="showReqModal"
+      :edit-id="editingReqId"
+      :offboarding-id="offboardingId"
+      @close="showReqModal = false"
+      @saved="handleReqSaved"
     />
   </div>
 </template>
@@ -218,7 +242,11 @@ const loading = ref(true)
 const expandedRequirements = ref<Set<string>>(new Set())
 const feedbackMessage = ref('')
 
-// ✅ NEW: Modal state
+// ✅ PHASE 3: Assets & accounts for the chips strip
+const assets = ref<any[]>([])
+const accounts = ref<any[]>([])
+
+// Modal state
 const showReqModal = ref(false)
 const editingReqId = ref<string | null>(null)
 const offboardingId = computed(() => route.params.id as string)
@@ -339,6 +367,14 @@ async function fetchData() {
   if (obError || !obData) { console.error('Error fetching offboarding:', obError); loading.value = false; return }
   onboarding.value = obData
 
+  // ✅ PHASE 3: Fetch assets & system accounts for the chips strip
+  const [ast, acc] = await Promise.all([
+    supabase.from('assets').select('*').eq('assigned_to', obData.consultant_id).order('created_at'),
+    supabase.from('system_accounts').select('*').eq('consultant_id', obData.consultant_id).order('created_at'),
+  ])
+  assets.value = ast.data || []
+  accounts.value = acc.data || []
+
   const { data: reqsData, error: reqsError } = await supabase
     .from('offboarding_requirements')
     .select(`
@@ -378,7 +414,7 @@ async function setSubStatus(sub: any, status: 'pending' | 'completed') {
   await fetchData()
 }
 
-// ✅ UPDATED: Modal triggers
+// Modal triggers
 function openReqEdit(req: any) {
   editingReqId.value = req.id
   showReqModal.value = true

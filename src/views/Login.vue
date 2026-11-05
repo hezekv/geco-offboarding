@@ -10,7 +10,7 @@
         <div class="grid h-24 w-24 place-items-center rounded-xl bg-[#12607A] text-white shadow-lg shadow-[#12607A]/20">
           <BriefcaseBusiness class="h-16 w-16" />
         </div>
-        <span class="text-5xl font-bold tracking-tight text-white">GECO Asia</span>
+        <span class="text-5xl font-bold tracking-tight text-white">HR Asia</span>
       </div>
 
       <!-- Error Banner -->

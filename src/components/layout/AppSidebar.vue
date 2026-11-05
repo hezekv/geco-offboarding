@@ -101,7 +101,9 @@ import {
   UserMinus,
   ClipboardList,
   ChevronRight,
+  LayoutDashboard
 } from 'lucide-vue-next'
+
 
 const route = useRoute()
 
@@ -120,7 +122,7 @@ type NavGroup = {
 
 // ----- Standalone links -----
 const standaloneItems: NavItem[] = [
-  { label: 'Dashboard', to: '/dashboard', icon: 'i-sliders' },
+  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
   { label: 'Consultants', to: '/consultants', icon: 'i-badge-check' },
   { label: 'Contacts', to: '/contacts', icon: 'i-edit' },
   { label: 'Performance', to: '/performance', icon: 'i-clock' },
@@ -138,8 +140,8 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    key: 'employees',
-    label: 'Employees',
+    key: 'transitions',
+    label: 'Transitions',
     icon: Users,
     children: [
       { label: 'Offboarding Employees', to: '/offboarding-employees', icon: UserMinus },

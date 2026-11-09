@@ -11,7 +11,6 @@
           <AppIcon name="i-plus" class="h-4 w-4" />
         </button>
       </div>
-
       <div class="relative flex-1">
         <AppIcon name="i-search" class="pointer-events-none absolute left-[14px] top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
         <input
@@ -21,7 +20,6 @@
           class="h-[46px] w-full rounded-[10px] border border-[#d5dee8] bg-[#f8fafc] pl-[42px] pr-4 text-sm text-ink transition-[border-color,box-shadow,background] duration-150 placeholder:text-[#8a97a8] hover:border-[#b9c8d8] focus:border-[#122033] focus:bg-white focus:outline-none focus:ring-[3px] focus:ring-[rgba(14,116,144,.25)]"
         />
       </div>
-      
       <!-- ✅ PHASE 2: Interactive Filters Dropdown -->
       <div class="relative flex-shrink-0">
         <button
@@ -55,15 +53,15 @@
     </div>
 
     <!-- Data Table -->
-    <div class="overflow-hidden rounded-card border border-line bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-card border border-line bg-white shadow-sm">
       <table class="w-full table-fixed text-left text-sm">
         <thead class="border-b border-line bg-[#f7fafc] text-ink">
           <tr>
-            <th class="h-16 w-[20%] px-6 text-left align-middle font-semibold">Name</th>
-            <th class="h-16 w-[28%] px-6 text-left align-middle font-semibold">Description</th>
-            <th class="h-16 w-[9%] px-6 text-left align-middle font-semibold">Files to Send</th>
-            <th class="h-16 w-[25%] px-6 text-left align-middle font-semibold">Requirements</th>
-            <th class="h-16 w-[18%] px-6 text-left align-middle font-semibold">Actions</th>
+            <th class="h-20 w-[20%] px-8 max-[1380px]:px-4 text-left align-middle font-semibold">Name</th>
+            <th class="h-20 w-[28%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Description</th>
+            <th class="h-20 w-[9%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Files to Send</th>
+            <th class="h-20 w-[25%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Requirements</th>
+            <th class="h-20 w-[18%] max-[1380px]:w-[14%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-line">
@@ -82,15 +80,13 @@
           <template v-for="config in filteredConfigs" :key="config.id">
             <!-- COLLAPSED SUMMARY ROW -->
             <tr v-show="!isExpanded(config.id)" class="transition-colors" :class="isPending(config.id) ? 'bg-[#d7e0ea]' : 'hover:bg-[#d7e0ea]/40'">
-              
-              <!-- ✅ UPDATED: Name Column with Compact Toggle Switch & Tooltip -->
-              <td class="px-6 py-4">
+              <!-- Name Column with Compact Toggle Switch & Tooltip -->
+              <td class="px-6 max-[1380px]:px-4 py-4">
                 <div class="flex items-center gap-2">
                   <button type="button" class="grid h-7 w-7 flex-shrink-0 place-items-center rounded-lg text-ink-3 transition-colors hover:bg-[rgba(18,32,51,.08)] hover:text-ink focus-visible:outline-2 focus-visible:outline-brand" @click="toggleExpand(config.id)" aria-label="Show full details">
                     <AppIcon name="i-chevron" class="h-4 w-4" />
                   </button>
                   <span class="font-semibold" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ config.name }}</span>
-
                   <!-- Compact Toggle Switch with Tooltip -->
                   <div class="group relative ml-1">
                     <!-- Tooltip -->
@@ -98,53 +94,49 @@
                       {{ config.is_active ? 'Click to make inactive' : 'Click to make active' }}
                       <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0f172a]"></div>
                     </div>
-                    
-                    <!-- Toggle Switch (8px height) -->
+                    <!-- Toggle Switch -->
                     <button
                       type="button"
                       role="switch"
                       :aria-checked="config.is_active"
                       :aria-label="`${config.name} status toggle`"
-                      class="relative inline-block h-3 w-5 flex-shrink-0 rounded-full cursor-pointer transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#198754] focus-visible:ring-offset-2"
+                      class="relative inline-block h-3 w-5 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#198754] focus-visible:ring-offset-2"
                       :class="config.is_active ? 'bg-[#198754]' : 'bg-[#e2e8f0]'"
                       @click="toggleActive(config)"
                     >
                       <span
-                        class="absolute top-0 left-0 h-3 w-3 rounded-full bg-white border border-[#cbd5e1] shadow-sm transition-transform duration-300"
+                        class="absolute top-0 left-0 h-3 w-3 rounded-full border border-[#cbd5e1] bg-white shadow-sm transition-transform duration-300"
                         :class="config.is_active ? 'translate-x-2 border-[#198754]' : 'translate-x-0'"
                       ></span>
                     </button>
                   </div>
                 </div>
               </td>
-
-              <td class="truncate px-6 py-4 text-ink-3">{{ config.description }}</td>
-              <td class="px-6 py-4 font-semibold" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ config.file_count }}</td>
-              <td class="px-6 py-4">
+              <td class="px-6 max-[1380px]:px-4 py-4 text-ink-3">{{ config.description }}</td>
+              <td class="px-6 max-[1380px]:px-4 py-4 font-semibold" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ config.file_count }}</td>
+              <td class="px-6 max-[1380px]:px-4 py-4">
                 <ul v-if="config.sub_requirements?.length" class="flex flex-col gap-1">
                   <li v-for="sub in config.sub_requirements" :key="sub.id" class="text-sm leading-[1.45] before:mr-1.5 before:content-['•']" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ sub.title }}</li>
                 </ul>
                 <span v-else class="text-sm text-ink-3">—</span>
               </td>
-              
-              <!-- ✅ UPDATED: Actions Column (Only Edit & Delete) -->
-              <td class="px-6 py-4">
+              <!-- Actions Column (Only Edit & Delete) -->
+              <td class="px-6 max-[1380px]:px-4 py-4">
                 <div v-if="isPending(config.id)" class="flex flex-wrap items-center gap-2.5">
                   <span class="text-[13px] font-semibold text-[#C0392B]">Are you sure?</span>
                   <button type="button" class="h-9 rounded-lg border border-[#dc9797] bg-white px-4 text-[13px] font-semibold text-[#c14b4b] transition-colors hover:border-[#C24152] hover:bg-[#C24152] hover:text-white" @click="confirmReqDelete(config.id)">Yes</button>
                   <button type="button" class="h-9 rounded-lg border border-line bg-white px-4 text-[13px] font-semibold text-ink transition-colors hover:bg-[#f2f6fa]" @click="pendingReqDeleteId = null">No</button>
                 </div>
-                <div v-else class="flex gap-2.5">
-                  <button type="button" class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#a6c8dc] bg-white px-5 text-[13px] font-semibold text-[#0D5F8F] transition-colors hover:border-[#0D5F8F] hover:bg-[#0D5F8F] hover:text-white" @click="openEdit(config.id)">
+                <div v-else class="flex gap-2.5 max-[1380px]:flex-col">
+                  <button type="button" class="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-[#a6c8dc] bg-white px-5 text-[13px] font-semibold text-[#0D5F8F] transition-colors hover:border-[#0D5F8F] hover:bg-[#0D5F8F] hover:text-white" @click="openEdit(config.id)">
                     Edit <AppIcon name="i-edit" class="h-4 w-4" />
                   </button>
-                  <button type="button" class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-5 text-[13px] font-semibold text-[#c14b4b] transition-colors hover:border-[#C24152] hover:bg-[#C24152] hover:text-white" @click="pendingReqDeleteId = config.id">
+                  <button type="button" class="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-5 text-[13px] font-semibold text-[#c14b4b] transition-colors hover:border-[#C24152] hover:bg-[#C24152] hover:text-white" @click="pendingReqDeleteId = config.id">
                     Delete <AppIcon name="i-trash" class="h-4 w-4" />
                   </button>
                 </div>
               </td>
             </tr>
-            
             <!-- EXPANDED CHECKLIST PANEL -->
             <tr v-if="isExpanded(config.id)" class="bg-white">
               <td colspan="5" class="p-0">
@@ -153,32 +145,30 @@
                     <div class="min-w-0">
                       <div class="group inline-flex items-center gap-2">
                         <h3 class="text-xl font-bold tracking-[-0.01em] text-ink">{{ config.name }}</h3>
-                        <!-- ✅ UPDATED: Compact Toggle Switch with Tooltip for Expanded Panel -->
+                        <!-- Compact Toggle Switch with Tooltip for Expanded Panel -->
                         <div class="group relative ml-1">
                           <!-- Tooltip -->
                           <div class="pointer-events-none absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0f172a] px-2.5 py-1.5 text-[11px] font-medium text-white shadow-lg transition-opacity group-hover:block z-20">
                             {{ config.is_active ? 'Click to make inactive' : 'Click to make active' }}
                             <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#0f172a]"></div>
                           </div>
-                          
-                          <!-- Toggle Switch (8px height) -->
+                          <!-- Toggle Switch -->
                           <button
                             type="button"
                             role="switch"
                             :aria-checked="config.is_active"
                             :aria-label="`${config.name} status toggle`"
-                            class="relative inline-block h-3 w-5 flex-shrink-0 rounded-full cursor-pointer transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#198754] focus-visible:ring-offset-2"
+                            class="relative inline-block h-3 w-5 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#198754] focus-visible:ring-offset-2"
                             :class="config.is_active ? 'bg-[#198754]' : 'bg-[#e2e8f0]'"
                             @click="toggleActive(config)"
                           >
                             <span
-                              class="absolute top-0 left-0 h-3 w-3 rounded-full bg-white border border-[#cbd5e1] shadow-sm transition-transform duration-300"
+                              class="absolute top-0 left-0 h-3 w-3 rounded-full border border-[#cbd5e1] bg-white shadow-sm transition-transform duration-300"
                               :class="config.is_active ? 'translate-x-2 border-[#198754]' : 'translate-x-0'"
                             ></span>
                           </button>
                         </div>
                       </div>
-
                       <p class="mt-1.5 text-[13px] leading-[1.5] text-ink-3">{{ config.description }}</p>
                     </div>
                     <div class="ml-auto flex flex-wrap items-center gap-2.5">
@@ -197,7 +187,6 @@
                         <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-[#0D5F8F] bg-[#0D5F8F] px-3.5 py-2.5 text-[13px] font-medium text-white transition-colors hover:border-[#198754] hover:bg-[#198754]" @click="openEdit(config.id)">
                           Add Sub-requirement <AppIcon name="i-plus" class="h-3.5 w-3.5" />
                         </button>
-                        
                       </template>
                     </div>
                   </div>
@@ -338,7 +327,8 @@
         </tbody>
       </table>
     </div>
-    <!-- ✅ PHASE 2: Pass kind="onboarding" to the modal -->
+
+    <!-- ✅ Onboarding scope -->
     <RequirementModal :open="showModal" :edit-id="editId" kind="onboarding" @close="showModal = false" @saved="handleSaved" />
   </div>
 </template>
@@ -401,6 +391,7 @@ const UNDO_WINDOW_MS = 3000
 onMounted(fetchConfigs)
 onBeforeUnmount(() => { if (undoState.value) commitUndo() })
 
+// ✅ Onboarding scope: kind = 'onboarding'
 async function fetchConfigs() {
   const { data, error } = await supabase
     .from('config_requirements')
@@ -411,7 +402,7 @@ async function fetchConfigs() {
         config_files (id, file_name, file_type, file_size, storage_path)
       )
     `)
-    .eq('kind', 'onboarding') // ✅ PHASE 2: Hardcoded for Onboarding page
+    .eq('kind', 'onboarding')
     .order('sort_order', { ascending: true })
     .order('sort_order', { ascending: true, referencedTable: 'config_sub_requirements' })
 
@@ -426,7 +417,6 @@ async function fetchConfigs() {
   })
 }
 
-// ✅ PHASE 2: Updated filtering logic
 const filteredConfigs = computed(() => {
   let result = configs.value
   if (statusFilter.value === 'active') {
@@ -514,6 +504,7 @@ async function confirmSubDelete(sub: any, reqId: string) {
   fetchConfigs()
 }
 
+// ✅ Onboarding scope: restored records keep kind = 'onboarding'
 async function undoRestore() {
   const state = undoState.value
   if (!state) return
@@ -546,7 +537,7 @@ async function undoRestore() {
         is_active: state.snapshot.is_active,
         sort_order: state.snapshot.sort_order,
         created_by: state.snapshot.created_by,
-        kind: 'onboarding', // ✅ PHASE 2: Restore as onboarding
+        kind: 'onboarding',
       })
       if (error) throw error
       for (const s of state.subs || []) {
@@ -595,7 +586,7 @@ async function toggleActive(config: any) {
     alert('Failed to update status.')
     return
   }
-  
+
   // Optimistic UI update for instant feedback without refetching
   config.is_active = newStatus
 }

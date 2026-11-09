@@ -41,7 +41,7 @@
           </div>
           <div class="mt-4">
             <p class="text-[28px] font-bold leading-none tracking-tight text-ink">
-              {{ analyticsLoading ? '...' : `${analytics.avgCycleTime}d` }}
+              {{ analyticsLoading ? '...' : `${analytics.avgCycleTime} d` }}
             </p>
             <p class="mt-2 text-[13px] font-medium text-ink-3">Offboarding Cycle Time</p>
           </div>

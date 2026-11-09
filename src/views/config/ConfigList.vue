@@ -55,15 +55,15 @@
     </div>
 
     <!-- Data Table -->
-    <div class="overflow-hidden rounded-card border border-line bg-white shadow-sm">
+    <div class="overflow-x-auto rounded-card border border-line bg-white shadow-sm">
       <table class="w-full table-fixed text-left text-sm">
         <thead class="border-b border-line bg-[#f7fafc] text-ink">
           <tr>
-            <th class="h-16 w-[20%] px-6 text-left align-middle font-semibold">Name</th>
-            <th class="h-16 w-[28%] px-6 text-left align-middle font-semibold">Description</th>
-            <th class="h-16 w-[9%] px-6 text-left align-middle font-semibold">Files to Send</th>
-            <th class="h-16 w-[25%] px-6 text-left align-middle font-semibold">Requirements</th>
-            <th class="h-16 w-[18%] px-6 text-left align-middle font-semibold">Actions</th>
+            <th class="h-20 w-[20%] px-8 max-[1380px]:px-4 text-left align-middle font-semibold">Name</th>
+            <th class="h-20 w-[28%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Description</th>
+            <th class="h-20 w-[9%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Files to Send</th>
+            <th class="h-20 w-[25%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Requirements</th>
+            <th class="h-20 w-[18%] max-[1380px]:w-[14%] px-6 max-[1380px]:px-4 text-left align-middle font-semibold">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-line">
@@ -84,7 +84,7 @@
             <tr v-show="!isExpanded(config.id)" class="transition-colors" :class="isPending(config.id) ? 'bg-[#d7e0ea]' : 'hover:bg-[#d7e0ea]/40'">
               
               <!-- ✅ UPDATED: Name Column with Compact Toggle Switch & Tooltip -->
-              <td class="px-6 py-4">
+              <td class="px-6 max-[1380px]:px-4 py-4">
                 <div class="flex items-center gap-2">
                   <button type="button" class="grid h-7 w-7 flex-shrink-0 place-items-center rounded-lg text-ink-3 transition-colors hover:bg-[rgba(18,32,51,.08)] hover:text-ink focus-visible:outline-2 focus-visible:outline-brand" @click="toggleExpand(config.id)" aria-label="Show full details">
                     <AppIcon name="i-chevron" class="h-4 w-4" />
@@ -118,9 +118,9 @@
                 </div>
               </td>
 
-              <td class="truncate px-6 py-4 text-ink-3">{{ config.description }}</td>
-              <td class="px-6 py-4 font-semibold" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ config.file_count }}</td>
-              <td class="px-6 py-4">
+              <td class="px-6 max-[1380px]:px-4 py-4 text-ink-3">{{ config.description }}</td>
+              <td class="px-6 max-[1380px]:px-4 py-4 font-semibold" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ config.file_count }}</td>
+              <td class="px-6 max-[1380px]:px-4 py-4">
                 <ul v-if="config.sub_requirements?.length" class="flex flex-col gap-1">
                   <li v-for="sub in config.sub_requirements" :key="sub.id" class="text-sm leading-[1.45] before:mr-1.5 before:content-['•']" :class="isPending(config.id) ? 'text-ink-3' : 'text-ink'">{{ sub.title }}</li>
                 </ul>
@@ -128,17 +128,17 @@
               </td>
               
               <!-- ✅ UPDATED: Actions Column (Only Edit & Delete) -->
-              <td class="px-6 py-4">
+              <td class="px-6 max-[1380px]:px-4 py-4">
                 <div v-if="isPending(config.id)" class="flex flex-wrap items-center gap-2.5">
                   <span class="text-[13px] font-semibold text-[#C0392B]">Are you sure?</span>
                   <button type="button" class="h-9 rounded-lg border border-[#dc9797] bg-white px-4 text-[13px] font-semibold text-[#c14b4b] transition-colors hover:border-[#C24152] hover:bg-[#C24152] hover:text-white" @click="confirmReqDelete(config.id)">Yes</button>
                   <button type="button" class="h-9 rounded-lg border border-line bg-white px-4 text-[13px] font-semibold text-ink transition-colors hover:bg-[#f2f6fa]" @click="pendingReqDeleteId = null">No</button>
                 </div>
-                <div v-else class="flex gap-2.5">
-                  <button type="button" class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#a6c8dc] bg-white px-5 text-[13px] font-semibold text-[#0D5F8F] transition-colors hover:border-[#0D5F8F] hover:bg-[#0D5F8F] hover:text-white" @click="openEdit(config.id)">
+                <div v-else class="flex gap-2.5 max-[1380px]:flex-col">
+                  <button type="button" class="inline-flex justify-center h-10 items-center gap-2 rounded-[10px] border border-[#a6c8dc] bg-white px-5 text-[13px] font-semibold text-[#0D5F8F] transition-colors hover:border-[#0D5F8F] hover:bg-[#0D5F8F] hover:text-white" @click="openEdit(config.id)">
                     Edit <AppIcon name="i-edit" class="h-4 w-4" />
                   </button>
-                  <button type="button" class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-5 text-[13px] font-semibold text-[#c14b4b] transition-colors hover:border-[#C24152] hover:bg-[#C24152] hover:text-white" @click="pendingReqDeleteId = config.id">
+                  <button type="button" class="inline-flex justify-center h-10 items-center gap-2 rounded-[10px] border border-[#e4b4b4] bg-white px-5 text-[13px] font-semibold text-[#c14b4b] transition-colors hover:border-[#C24152] hover:bg-[#C24152] hover:text-white" @click="pendingReqDeleteId = config.id">
                     Delete <AppIcon name="i-trash" class="h-4 w-4" />
                   </button>
                 </div>

@@ -110,16 +110,16 @@
                 <span :class="[badgeBase, consultantStatusPill(c.status).cls]">{{ consultantStatusPill(c.status).label }}</span>
               </td>
               <td class="h-[5.5rem] px-4 align-middle">
-                <div class="flex flex-wrap gap-4">
+                <div class="flex flex-wrap gap-4 max-[1380px]:flex-col max-[1380px]:gap-2 max-[1380px]:py-4">
                   <router-link
                     :to="{ name: 'consultant-detail', params: { id: c.id } }"
-                    class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#a6c8dc] bg-white px-5 text-[14px] font-semibold text-[#0D5F8F] transition-colors hover:border-[#0D5F8F] hover:bg-[#0D5F8F] hover:text-white"
+                    class="inline-flex justify-center h-10 items-center gap-2 rounded-[10px] border border-[#a6c8dc] bg-white px-5 text-[14px] font-semibold text-[#0D5F8F] transition-colors hover:border-[#0D5F8F] hover:bg-[#0D5F8F] hover:text-white"
                   >
                     Open <ChevronRight class="h-3.5 w-3.5" />
                   </router-link>
                   <button
                     type="button"
-                    class="inline-flex h-10 items-center gap-2 rounded-[10px] border border-[#122033] bg-[#F7FAFC] px-5 text-[14px] font-medium text-[#122033] transition-colors hover:border-[#198754] hover:bg-[#198754] hover:text-white"
+                    class="inline-flex justify-center h-10 items-center gap-2 rounded-[10px] border border-[#122033] bg-[#F7FAFC] px-5 text-[14px] font-medium text-[#122033] transition-colors hover:border-[#198754] hover:bg-[#198754] hover:text-white"
                     @click="openEdit(c)"
                   >
                     Edit <AppIcon name="i-edit" class="h-3.5 w-3.5" />

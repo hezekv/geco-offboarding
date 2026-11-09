@@ -3,7 +3,7 @@
   <div class="flex min-h-screen w-full bg-[#122033] text-white" style="font-family: 'IBM Plex Sans', sans-serif;">
     
     <!-- ===== Left Panel: Sign In Form ===== -->
-    <div class="flex w-full flex-col justify-center px-8 py-12 lg:w-1/2 lg:px-24 xl:px-32">
+    <div class="flex w-full flex-col bg-[#1b2534] justify-center px-8 py-12 lg:w-1/2 lg:px-24 xl:px-32">
       
       <!-- Logo -->
       <div class="mb-12 flex items-center gap-3">
